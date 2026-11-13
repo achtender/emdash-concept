@@ -1,0 +1,26 @@
+---
+/**
+ * Inline theme bootstrap. Render in <head> before styles paint so the stored
+ * theme is applied without a flash. Sets both `data-theme` (for the GitCMS
+ * tokens and EmDash image variants) and the `.dark` class (for Tailwind).
+ */
+---
+
+<script is:inline>
+	(function () {
+		try {
+			var key = "theme";
+			var stored = localStorage.getItem(key);
+			var theme =
+				stored === "light" || stored === "dark"
+					? stored
+					: window.matchMedia("(prefers-color-scheme: dark)").matches
+						? "dark"
+						: "light";
+			var root = document.documentElement;
+			root.dataset.theme = theme;
+			root.classList.toggle("dark", theme === "dark");
+			root.style.colorScheme = theme;
+		} catch (error) {}
+	})();
+</script>

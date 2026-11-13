@@ -1,0 +1,124 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Container from "./Container.astro";
+import ThemeToggle from "./ThemeToggle.astro";
+
+interface NavItem {
+	label: string;
+	url: string;
+	target?: string | null;
+	children?: NavItem[];
+}
+
+interface Props extends HTMLAttributes<"header"> {
+	siteName: string;
+	homeHref?: string;
+	navigation: NavItem[];
+}
+
+const {
+	siteName,
+	homeHref = "/",
+	navigation,
+	class: className,
+	...attrs
+} = Astro.props;
+
+const pathname = Astro.url.pathname.replace(/\/$/, "") || "/";
+
+function isActive(href: string) {
+	const path = href.replace(/\/$/, "") || "/";
+	if (path === "/") return pathname === "/";
+	return pathname === path || pathname.startsWith(`${path}/`);
+}
+---
+
+<header
+	class:list={[
+		"sticky top-0 z-40 border-b border-border bg-background/85 backdrop-blur",
+		className,
+	]}
+	{...attrs}
+>
+	<Container>
+		<div class="flex h-14 items-center justify-between gap-4">
+			<a
+				href={homeHref}
+				class="flex shrink-0 items-center gap-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+			>
+				<span
+					class="flex size-6 items-center justify-center rounded-sm bg-primary-solid text-[11px] font-semibold text-primary-solid-foreground"
+				>
+					{siteName.charAt(0)}
+				</span>
+				<span class="text-sm font-medium tracking-tight">{siteName}</span>
+			</a>
+
+			<nav class="hidden items-center gap-1 md:flex" aria-label="Primary">
+				{
+					navigation.map((item) => (
+						<a
+							href={item.url}
+							target={item.target ?? undefined}
+							rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+							aria-current={isActive(item.url) ? "page" : undefined}
+							class:list={[
+								"rounded-sm px-2.5 py-1.5 text-sm transition-colors",
+								isActive(item.url)
+									? "text-foreground"
+									: "text-muted-foreground hover:text-foreground",
+							]}
+						>
+							{item.label}
+						</a>
+					))
+				}
+			</nav>
+
+			<div class="flex items-center gap-2">
+				<a
+					href="/search"
+					class="inline-flex size-8 items-center justify-center rounded-md border border-border bg-surface-75 text-muted-foreground transition-colors hover:bg-surface-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+					aria-label="Search"
+					title="Search"
+				>
+					<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="size-4">
+						<circle cx="7" cy="7" r="4.25" stroke="currentColor" stroke-width="1.4"></circle>
+						<path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+					</svg>
+				</a>
+				<ThemeToggle />
+				<details class="relative md:hidden">
+					<summary
+						class="inline-flex size-8 cursor-pointer list-none items-center justify-center rounded-md border border-border bg-surface-75 text-muted-foreground transition-colors hover:bg-surface-200 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+						aria-label="Open menu"
+					>
+						<svg viewBox="0 0 16 16" fill="none" aria-hidden="true" class="size-4">
+							<path d="M2.5 4.5h11M2.5 8h11M2.5 11.5h11" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"></path>
+						</svg>
+					</summary>
+					<nav
+						class="absolute right-0 top-10 z-50 w-56 rounded-md border border-border bg-overlay p-2 shadow-lg"
+						aria-label="Primary mobile"
+					>
+						{navigation.map((item) => (
+							<a
+								href={item.url}
+								target={item.target ?? undefined}
+								rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+								class:list={[
+									"block rounded-sm px-3 py-2 text-sm",
+									isActive(item.url)
+										? "bg-surface-200 text-foreground"
+										: "text-muted-foreground hover:bg-surface-200 hover:text-foreground",
+								]}
+							>
+								{item.label}
+							</a>
+						))}
+					</nav>
+				</details>
+			</div>
+		</div>
+	</Container>
+</header>

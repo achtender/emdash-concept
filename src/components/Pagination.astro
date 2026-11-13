@@ -1,0 +1,42 @@
+---
+/**
+ * Cursor pagination for archive routes.
+ */
+interface Props {
+	basePath: string;
+	nextCursor?: string | null;
+	hasPrevious?: boolean;
+	label?: string;
+}
+
+const { basePath, nextCursor, hasPrevious = false, label = "Pagination" } = Astro.props;
+---
+
+{
+	hasPrevious || nextCursor ? (
+		<nav
+			class="mt-12 flex items-center justify-between gap-4 border-t border-border pt-6"
+			aria-label={label}
+		>
+			{
+				hasPrevious ? (
+					<a href={basePath} class="text-link font-mono text-xs uppercase tracking-wider">
+						First page
+					</a>
+				) : (
+					<span />
+				)
+			}
+			{
+				nextCursor ? (
+					<a
+						href={`${basePath}?cursor=${encodeURIComponent(nextCursor)}`}
+						class="text-link font-mono text-xs uppercase tracking-wider"
+					>
+						Next page
+					</a>
+				) : null
+			}
+		</nav>
+	) : null
+}

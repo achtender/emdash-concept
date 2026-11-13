@@ -1,0 +1,254 @@
+---
+import { getEmDashCollection } from "emdash";
+import Base from "../layouts/Base.astro";
+import PageHeader from "../components/PageHeader.astro";
+import Section from "../components/Section.astro";
+import Container from "../components/Container.astro";
+import EventRow from "../components/EventRow.astro";
+import EmptyState from "../components/EmptyState.astro";
+import { formatDateRange, formatMonthLabel, formatTime, isoDate } from "../utils/format";
+import {
+	addMonths,
+	buildMonthGrid,
+	dateKey,
+	eventCoversDay,
+	monthKey,
+	monthStart,
+	parseMonth,
+	WEEKDAY_LABELS,
+} from "../utils/calendar";
+
+const monthRef = parseMonth(Astro.url.searchParams.get("month"));
+const todayKey = dateKey(new Date());
+const weeks = buildMonthGrid(monthRef);
+
+const { entries: events, cacheHint } = await getEmDashCollection("events", {
+	orderBy: { start: "asc" },
+	limit: 100,
+});
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+interface CalendarEvent {
+	key: string;
+	startKey: string;
+	endKey: string;
+	id: string;
+	title: string;
+	start: string;
+	end?: string | null;
+	startTime?: string | null;
+	endTime?: string | null;
+	allDay?: boolean | null;
+	format?: string | null;
+}
+
+const calendarEvents: CalendarEvent[] = events.map((event) => {
+	const startKey = isoDate(event.data.start) ?? "";
+	return {
+		key: event.id,
+		startKey,
+		endKey: isoDate(event.data.end) ?? startKey,
+		id: event.id,
+		title: event.data.title,
+		start: event.data.start,
+		end: event.data.end,
+		startTime: event.data.start_time,
+		endTime: event.data.end_time,
+		allDay: event.data.all_day,
+		format: event.data.format,
+	};
+});
+
+const eventsForDay = (dayKey: string) =>
+	calendarEvents.filter((event) => eventCoversDay(event.startKey, event.endKey, dayKey));
+
+const monthPrefix = monthKey(monthRef);
+const inMonth = calendarEvents.filter(
+	(event) => event.startKey.startsWith(monthPrefix) || event.endKey.startsWith(monthPrefix),
+);
+
+const upcoming = events.filter((event) => (isoDate(event.data.start) ?? "") >= todayKey).slice(0, 5);
+
+const prevMonth = addMonths(monthRef, -1);
+const nextMonth = addMonths(monthRef, 1);
+const thisMonth = parseMonth(todayKey.slice(0, 7));
+---
+
+<Base
+	title={`Calendar — ${formatMonthLabel(monthStart(monthRef))}`}
+	description="Workshops, open studios, readings, and clinics at the Fieldwork studio. Every event is managed in EmDash."
+	canonical={`${Astro.url.origin}/calendar`}
+>
+	<PageHeader
+		eyebrow="Fieldwork / Calendar"
+		title="What's happening at the studio"
+		description="Open studios, workshops, readings, and clinics. Events are content entries in EmDash, so the calendar, the event pages, and the feed all stay in step."
+	>
+		<div class="mt-6 flex flex-wrap items-center gap-3">
+			<a
+				href={`/calendar?month=${monthKey(prevMonth)}`}
+				class="inline-flex items-center gap-1.5 rounded-md border border-border-strong bg-surface-75 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-foreground transition-colors hover:bg-surface-200"
+				rel="prev"
+			>
+				<span aria-hidden="true">←</span> Previous
+			</a>
+			<p class="font-mono text-xs uppercase tracking-wider text-foreground-lighter" aria-live="polite">
+				{formatMonthLabel(monthStart(monthRef))}
+			</p>
+			<a
+				href={`/calendar?month=${monthKey(nextMonth)}`}
+				class="inline-flex items-center gap-1.5 rounded-md border border-border-strong bg-surface-75 px-3 py-1.5 font-mono text-[11px] uppercase tracking-wider text-foreground transition-colors hover:bg-surface-200"
+				rel="next"
+			>
+				Next <span aria-hidden="true">→</span>
+			</a>
+			{
+				monthKey(monthRef) !== monthKey(thisMonth) ? (
+					<a href="/calendar" class="text-link font-mono text-[11px] uppercase tracking-wider">
+						Today
+					</a>
+				) : null
+			}
+		</div>
+	</PageHeader>
+
+	<Section>
+		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_19rem]">
+			<div>
+				<div class="overflow-hidden rounded-lg border border-border bg-background">
+					<div class="grid grid-cols-7 border-b border-border bg-surface-75">
+						{WEEKDAY_LABELS.map((label) => (
+							<div class="px-2 py-2 text-center font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+								{label}
+							</div>
+						))}
+					</div>
+
+					<div class="grid grid-cols-7">
+						{weeks.flat().map((day) => {
+							const dayEvents = eventsForDay(day.key);
+							return (
+								<div
+									class:list={[
+										"min-h-24 border-b border-r border-border p-1.5 last:border-r-0 sm:min-h-28 sm:p-2",
+										!day.inMonth && "bg-surface-75 text-foreground-lighter",
+										day.isToday && "bg-primary/5",
+									]}
+								>
+									<div class="flex items-center justify-between gap-1">
+										<span
+											class:list={[
+												"inline-flex size-5 items-center justify-center rounded-full font-mono text-[11px]",
+												day.isToday
+													? "bg-primary-solid text-primary-solid-foreground"
+													: day.inMonth
+														? "text-foreground"
+														: "text-foreground-lighter",
+											]}
+										>
+											{day.date.getDate()}
+										</span>
+									</div>
+
+									<ul class="mt-1 space-y-1">
+										{dayEvents.slice(0, 2).map((event) => (
+											<li>
+												<a
+													href={`/events/${event.id}`}
+													class="block truncate rounded-sm border border-primary/25 bg-primary/10 px-1.5 py-0.5 text-[10px] leading-snug text-foreground transition-colors hover:border-primary/50"
+													title={event.title}
+												>
+													{event.allDay ? event.title : `${formatTime(event.startTime)} ${event.title}`}
+												</a>
+											</li>
+										))}
+										{dayEvents.length > 2 ? (
+											<li class="px-1.5 font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+												+{dayEvents.length - 2} more
+											</li>
+										) : null}
+									</ul>
+								</div>
+							);
+						})}
+					</div>
+				</div>
+
+				<p class="mt-4 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+					{inMonth.length} {inMonth.length === 1 ? "event" : "events"} this month ·{" "}
+					{calendarEvents.length} total
+				</p>
+			</div>
+
+			<aside class="space-y-8">
+				<div>
+					<div class="flex items-baseline justify-between gap-3 border-b border-border pb-2">
+						<p class="heading-meta text-foreground-lighter">Coming up</p>
+						<a href="/journal" class="text-link font-mono text-[11px] uppercase tracking-wider">Journal</a>
+					</div>
+					{upcoming.length > 0 ? (
+						<ul class="mt-4 divide-y divide-border border-b border-border">
+							{upcoming.map((event) => (
+								<li class="py-4 first:pt-0 last:pb-0">
+									<a href={`/events/${event.id}`} class="group block">
+										<p class="font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+											{formatDateRange(event.data.start, event.data.end ?? event.data.start)}
+										</p>
+										<p class="mt-1 text-sm font-medium group-hover:underline">{event.data.title}</p>
+										{event.data.location ? (
+											<p class="mt-1 font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+												{event.data.location}
+											</p>
+										) : null}
+									</a>
+								</li>
+							))}
+						</ul>
+					) : (
+						<EmptyState title="No events scheduled" class="mt-4" />
+					)}
+				</div>
+
+				<div class="rounded-md border border-border bg-surface-75 p-4">
+					<p class="heading-meta text-foreground-lighter">Subscribe</p>
+					<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+						Every event page has a downloadable calendar file. Open one and add it to the
+						calendar you actually use.
+					</p>
+				</div>
+			</aside>
+		</div>
+	</Section>
+
+	<Section class="border-t border-border bg-surface-75">
+		<Container>
+			<div class="flex flex-wrap items-end justify-between gap-4">
+				<div>
+					<p class="heading-meta text-foreground-lighter">The full list</p>
+					<h2 class="heading-section mt-2">Upcoming events</h2>
+				</div>
+				<a href="/events" class="text-link font-mono text-xs uppercase tracking-wider">All events</a>
+			</div>
+			{upcoming.length > 0 ? (
+				<div class="mt-8 grid gap-3">
+					{upcoming.map((event) => (
+						<EventRow
+							href={`/events/${event.id}`}
+							title={event.data.title}
+							summary={event.data.summary}
+							start={event.data.start}
+							end={event.data.end}
+							startTime={event.data.start_time}
+							endTime={event.data.end_time}
+							allDay={event.data.all_day}
+							location={event.data.location}
+							format={event.data.format}
+						/>
+					))}
+				</div>
+			) : (
+				<EmptyState title="No upcoming events" description="Check back soon." class="mt-8" />
+			)}
+		</Container>
+	</Section>
+</Base>

@@ -1,0 +1,31 @@
+---
+import Container from "../Container.astro";
+
+interface Props {
+	value: {
+		quote: string;
+		attribution?: string;
+		role?: string;
+	};
+}
+
+const { value } = Astro.props;
+---
+
+<section class="border-y border-border bg-background">
+	<Container size="narrow">
+		<figure class="py-16 text-center sm:py-20">
+			<blockquote class="text-balance text-2xl font-medium leading-snug tracking-tight sm:text-3xl">
+				“{value.quote}”
+			</blockquote>
+			{
+				value.attribution ? (
+					<figcaption class="mt-6 font-mono text-xs uppercase tracking-wider text-foreground-lighter">
+						{value.attribution}
+						{value.role ? <span class="text-foreground-lighter/70"> · {value.role}</span> : null}
+					</figcaption>
+				) : null
+			}
+		</figure>
+	</Container>
+</section>

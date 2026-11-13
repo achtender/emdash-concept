@@ -1,0 +1,54 @@
+---
+/**
+ * Portable Text block renderer with stable heading anchors.
+ *
+ * EmDash's default block component renders headings without `id`s. The table of
+ * contents is built from `_key`, so this override applies the same anchor here.
+ */
+import type { BlockProps } from "astro-portabletext/types";
+import { headingId } from "../utils/format";
+
+type Node = BlockProps["node"] & { _key?: string; textAlign?: string };
+type Props = Omit<BlockProps, "node"> & { node: Node };
+
+const { node, index: _index, isInline: _isInline, ...attrs } = Astro.props as Props;
+const style = node.style ?? "normal";
+const id = style.startsWith("h") ? headingId(node) : undefined;
+const align = node.textAlign ? `has-text-align-${node.textAlign}` : undefined;
+---
+
+{
+	style === "h1" ? (
+		<h1 id={id} class={align} {...attrs}>
+			<slot />
+		</h1>
+	) : style === "h2" ? (
+		<h2 id={id} class={align} {...attrs}>
+			<slot />
+		</h2>
+	) : style === "h3" ? (
+		<h3 id={id} class={align} {...attrs}>
+			<slot />
+		</h3>
+	) : style === "h4" ? (
+		<h4 id={id} class={align} {...attrs}>
+			<slot />
+		</h4>
+	) : style === "h5" ? (
+		<h5 id={id} class={align} {...attrs}>
+			<slot />
+		</h5>
+	) : style === "h6" ? (
+		<h6 id={id} class={align} {...attrs}>
+			<slot />
+		</h6>
+	) : style === "blockquote" ? (
+		<blockquote class={align} {...attrs}>
+			<slot />
+		</blockquote>
+	) : (
+		<p class={align} {...attrs}>
+			<slot />
+		</p>
+	)
+}

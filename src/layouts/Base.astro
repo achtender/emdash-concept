@@ -1,9 +1,13 @@
 ---
 import "@emdash-cms/plugin-forms/styles";
+import "../styles/global.css";
 import { getMenuWithCacheHint, getSiteSettingsWithCacheHint } from "emdash";
 import { EmDashHead, EmDashBodyStart, EmDashBodyEnd } from "emdash/ui";
 import { createPublicPageContext } from "emdash/page";
-import LiveSearch from "emdash/ui/search";
+import SiteHeader from "../components/SiteHeader.astro";
+import SiteFooter from "../components/SiteFooter.astro";
+import SkipLink from "../components/SkipLink.astro";
+import ThemeScript from "../components/ThemeScript.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 interface Props {
@@ -16,32 +20,58 @@ interface Props {
 	content?: { collection: string; id: string; slug?: string | null };
 }
 
-const { title, pageTitle, description, image, canonical, content } =
-	Astro.props;
-const [settingsResult, menuResult] = await Promise.all([
+const { title, pageTitle, description, image, canonical, content } = Astro.props;
+
+const [settingsResult, primaryResult, footerResult] = await Promise.all([
 	getSiteSettingsWithCacheHint(),
 	getMenuWithCacheHint("primary"),
+	getMenuWithCacheHint("footer"),
 ]);
 if (Astro.cache?.enabled) {
 	Astro.cache.set(settingsResult.cacheHint);
-	Astro.cache.set(menuResult.cacheHint);
+	Astro.cache.set(primaryResult.cacheHint);
+	Astro.cache.set(footerResult.cacheHint);
 }
 
-const { siteTitle, siteTagline, siteLogo } = resolveStarterSiteIdentity(
-	settingsResult.data,
-);
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settingsResult.data);
+
 const titleIncludesSiteName =
 	title === siteTitle ||
 	title.endsWith(` | ${siteTitle}`) ||
 	title.endsWith(` — ${siteTitle}`);
 const fullTitle = titleIncludesSiteName ? title : `${title} — ${siteTitle}`;
 const pageDescription = description ?? siteTagline;
-const menu = menuResult.data;
+
+const navigation = primaryResult.data?.items ?? [];
+
+const footerGroups = (footerResult.data?.items ?? []).filter(
+	(item) => item.children.length > 0,
+);
+const footerColumns = footerGroups.map((group) => ({
+	label: group.label,
+	items: group.children.map((child) => ({
+		label: child.label,
+		url: child.url,
+		target: child.target,
+	})),
+}));
+
+if (footerColumns.length === 0) {
+	footerColumns.push({
+		label: "Explore",
+		items: [
+			{ label: "Journal", url: "/journal", target: undefined },
+			{ label: "Calendar", url: "/calendar", target: undefined },
+			{ label: "Handbook", url: "/handbook", target: undefined },
+			{ label: "Authors", url: "/authors", target: undefined },
+		],
+	});
+}
 
 const pageCtx = createPublicPageContext({
 	Astro,
 	kind: content ? "content" : "custom",
-	pageType: "website",
+	pageType: content ? "article" : "website",
 	title: fullTitle,
 	pageTitle: pageTitle ?? title,
 	description: pageDescription,
@@ -57,46 +87,23 @@ const pageCtx = createPublicPageContext({
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<ThemeScript />
 		<title>{fullTitle}</title>
 		<EmDashHead page={pageCtx} />
 	</head>
-	<body>
+	<body class="min-h-dvh bg-background text-foreground">
 		<EmDashBodyStart page={pageCtx} />
-
-		<header>
-			<nav>
-				<a href="/">
-					{
-						siteLogo ? (
-							<img
-								src={siteLogo.url}
-								alt={siteLogo.alt || siteTitle}
-								style="height:48px;width:auto;margin:-8px 0;display:block;"
-							/>
-						) : (
-							siteTitle
-						)
-					}
-				</a>
-				{
-					menu?.items.map((item) => (
-						<a
-							href={item.url}
-							target={item.target}
-							rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
-						>
-							{item.label}
-						</a>
-					))
-				}
-				<LiveSearch placeholder="Search..." collections={["posts", "pages"]} />
-			</nav>
-		</header>
-
-		<main>
+		<SkipLink />
+		<SiteHeader siteName={siteTitle} navigation={navigation} />
+		<main id="main">
 			<slot />
 		</main>
-
+		<SiteFooter
+			siteName={siteTitle}
+			tagline={siteTagline}
+			columns={footerColumns}
+			note="Fieldwork is a demonstration site: every section is edited in EmDash, from the journal and handbook to the calendar and bylines."
+		/>
 		<EmDashBodyEnd page={pageCtx} />
 	</body>
 </html>

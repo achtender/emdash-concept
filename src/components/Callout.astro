@@ -1,0 +1,27 @@
+---
+interface Props {
+	variant?: "note" | "warning" | "tip";
+	title?: string;
+}
+
+const { variant = "note", title } = Astro.props;
+
+const styles = {
+	note: "border-border bg-surface-100",
+	warning: "border-warning/40 bg-warning/10",
+	tip: "border-primary/30 bg-primary/5",
+};
+
+const labels = {
+	note: "Note",
+	warning: "Warning",
+	tip: "Tip",
+};
+---
+
+<aside class:list={["my-6 rounded-md border px-4 py-3", styles[variant]]}>
+	<p class="heading-meta text-foreground-lighter">{title ?? labels[variant]}</p>
+	<div class="mt-2 text-sm leading-relaxed text-muted-foreground">
+		<slot />
+	</div>
+</aside>

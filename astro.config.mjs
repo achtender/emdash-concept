@@ -1,5 +1,6 @@
 import node from "@astrojs/node";
 import react from "@astrojs/react";
+import tailwindcss from "@tailwindcss/vite";
 import { formsPlugin } from "@emdash-cms/plugin-forms";
 import { defineConfig } from "astro/config";
 import emdash, { local } from "emdash/astro";
@@ -23,5 +24,8 @@ export default defineConfig({
 			plugins: [formsPlugin()],
 		}),
 	],
+	vite: {
+		plugins: [tailwindcss()],
+	},
 	devToolbar: { enabled: false },
 });

@@ -1,0 +1,28 @@
+---
+import type { Heading } from "../utils/format";
+
+interface Props {
+	headings: Heading[];
+	label?: string;
+	class?: string;
+}
+
+const { headings, label = "On this page", class: className } = Astro.props;
+---
+
+{
+	headings.length > 0 ? (
+		<nav class:list={["text-sm", className]} aria-label={label}>
+			<p class="heading-meta mb-3 text-foreground-lighter">{label}</p>
+			<ul class="space-y-1">
+				{headings.map((heading) => (
+					<li style={`padding-left: ${(heading.level - 2) * 0.75}rem`}>
+						<a href={`#${heading.id}`} class="toc-link">
+							{heading.text}
+						</a>
+					</li>
+				))}
+			</ul>
+		</nav>
+	) : null
+}

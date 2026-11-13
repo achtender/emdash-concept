@@ -1,0 +1,35 @@
+---
+interface Props {
+	title?: string;
+	description?: string;
+	actionLabel?: string;
+	actionHref?: string;
+	class?: string;
+}
+
+const {
+	title = "Nothing here yet",
+	description,
+	actionLabel,
+	actionHref,
+	class: className,
+} = Astro.props;
+---
+
+<div
+	class:list={[
+		"rounded-lg border border-dashed border-border-strong bg-surface-75 px-6 py-12 text-center",
+		className,
+	]}
+>
+	<p class="heading-meta text-foreground-lighter">Empty</p>
+	<p class="mt-3 text-base font-medium">{title}</p>
+	{description ? <p class="mx-auto mt-2 max-w-md text-sm text-muted-foreground">{description}</p> : null}
+	{
+		actionHref && actionLabel ? (
+			<a href={actionHref} class="text-link mt-4 inline-block text-sm">
+				{actionLabel}
+			</a>
+		) : null
+	}
+</div>

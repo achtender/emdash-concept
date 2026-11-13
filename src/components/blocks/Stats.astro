@@ -1,0 +1,33 @@
+---
+import Section from "../Section.astro";
+import SectionHeading from "../SectionHeading.astro";
+
+interface StatItem {
+	value: string;
+	label: string;
+}
+
+interface Props {
+	value: {
+		heading?: string;
+		items?: StatItem[];
+	};
+}
+
+const { value } = Astro.props;
+const items = Array.isArray(value.items) ? value.items : [];
+---
+
+<Section class="border-y border-border bg-surface-75">
+	<SectionHeading label="By the numbers" title={value.heading} />
+	<div class="mt-8 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+		{
+			items.map((item) => (
+				<div class="border-t border-border pt-4">
+					<p class="font-mono text-3xl tracking-tight text-foreground">{item.value}</p>
+					<p class="mt-2 text-sm text-muted-foreground">{item.label}</p>
+				</div>
+			))
+		}
+	</div>
+</Section>

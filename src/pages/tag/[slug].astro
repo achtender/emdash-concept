@@ -1,21 +1,29 @@
 ---
-import {
-	getTaxonomyTermsWithCacheHint,
-	getEmDashCollection,
-	decodeSlug,
-} from "emdash";
-import { Image } from "emdash/ui";
+import { getEmDashCollection, getTaxonomyTermsWithCacheHint, decodeSlug } from "emdash";
 import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import EntryCard from "../../components/EntryCard.astro";
+import Badge from "../../components/Badge.astro";
+import Pagination from "../../components/Pagination.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import { formatDate, readingTime } from "../../utils/format";
+import { flattenTerms } from "../../utils/terms";
 
 const slug = decodeSlug(Astro.params.slug);
-const termsResult = await getTaxonomyTermsWithCacheHint("tag", {
-	includeCounts: false,
-});
-const term = slug ? termsResult.data.find((item) => item.slug === slug) : null;
+if (!slug) return Astro.rewrite("/404");
 
-if (!term) {
-	return Astro.rewrite("/404");
+const [tagResult, categoryResult] = await Promise.all([
+	getTaxonomyTermsWithCacheHint("tag", { includeCounts: true }),
+	getTaxonomyTermsWithCacheHint("category", { includeCounts: true }),
+]);
+if (Astro.cache?.enabled) {
+	Astro.cache.set(tagResult.cacheHint);
+	Astro.cache.set(categoryResult.cacheHint);
 }
+
+const term = flattenTerms(tagResult.data).find((item) => item.slug === slug);
+if (!term) return Astro.rewrite("/404");
 
 const cursor = Astro.url.searchParams.get("cursor") || undefined;
 const {
@@ -24,49 +32,102 @@ const {
 	nextCursor,
 } = await getEmDashCollection("posts", {
 	where: { tag: term.slug },
-	orderBy: { published_at: "desc" },
-	limit: 20,
+	orderBy: { date: "desc" },
+	limit: 9,
 	cursor,
 });
-if (Astro.cache?.enabled) {
-	Astro.cache.set(termsResult.cacheHint);
-	Astro.cache.set(cacheHint);
-}
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const allTags = flattenTerms(tagResult.data).filter((item) => (item.count ?? 0) > 0);
+const categories = flattenTerms(categoryResult.data).filter((item) => (item.count ?? 0) > 0);
 ---
 
 <Base
-	title={`Posts tagged "${term.label}"`}
-	description={`Posts tagged ${term.label}`}
+	title={`Tagged “${term.label}”`}
+	description={term.description ?? `Journal entries tagged ${term.label}.`}
+	canonical={`${Astro.url.origin}/tag/${term.slug}`}
 >
-	<h1>Tag: {term.label}</h1>
+	<PageHeader
+		eyebrow="Fieldwork / Tag"
+		title={`Tagged “${term.label}”`}
+		description={term.description}
+	>
+		<div class="mt-6 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+			<span>{term.count ?? posts.length} entries</span>
+			<span aria-hidden="true">·</span>
+			<a href="/journal" class="text-link normal-case tracking-normal">All journal entries</a>
+		</div>
+	</PageHeader>
 
-	{
-		posts.length === 0 ? (
-			<p>No posts with this tag yet.</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<div {...post.edit.featured_image}><Image image={post.data.featured_image} /></div>
-							)}
-							<h2 {...post.edit.title}>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p {...post.edit.excerpt}>{post.data.excerpt}</p>}
-					</li>
-				))}
-			</ul>
-		)
-	}
-	<nav aria-label="Pagination">
-		{cursor && <a href={`/tag/${term.slug}`}>First page</a>}
-		{
-			nextCursor && (
-				<a href={`/tag/${term.slug}?cursor=${encodeURIComponent(nextCursor)}`}>
-					Next page
-				</a>
-			)
-		}
-	</nav>
+	<Section>
+		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem]">
+			<div>
+				{
+					posts.length > 0 ? (
+						<div class="grid gap-5 sm:grid-cols-2">
+							{posts.map((post) => (
+								<EntryCard
+									href={`/journal/${post.id}`}
+									title={post.data.title}
+									description={post.data.excerpt}
+									meta={`${formatDate(post.data.date)} · ${readingTime(post.data.content)} min`}
+									badge={post.data.terms?.category?.[0]?.label}
+									image={post.data.cover}
+									seed={post.id}
+								/>
+							))}
+						</div>
+					) : (
+						<EmptyState
+							title="No entries with this tag yet"
+							description="Tags are applied in the admin and appear here as soon as an entry is published."
+							actionLabel="Back to the journal"
+							actionHref="/journal"
+						/>
+					)
+				}
+
+				<Pagination basePath={`/tag/${term.slug}`} nextCursor={nextCursor} hasPrevious={Boolean(cursor)} />
+			</div>
+
+			<aside class="space-y-8 lg:sticky lg:top-20 lg:self-start">
+				<div>
+					<p class="heading-meta text-foreground-lighter">All tags</p>
+					<ul class="mt-3 flex flex-wrap gap-1.5">
+						{allTags.map((item) => (
+							<li>
+								<a href={`/tag/${item.slug}`} class="inline-block">
+									<Badge
+										variant={item.slug === term.slug ? "primary" : "default"}
+										class="transition-colors hover:border-border-strong hover:text-foreground"
+									>
+										{item.label}
+									</Badge>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+
+				<div>
+					<p class="heading-meta text-foreground-lighter">Categories</p>
+					<ul class="mt-3 space-y-1">
+						{categories.map((item) => (
+							<li>
+								<a
+									href={`/category/${item.slug}`}
+									class="flex items-baseline justify-between gap-3 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									<span style={`padding-left: ${item.parentId ? "0.75rem" : "0"}`}>
+										{item.label}
+									</span>
+									<span class="font-mono text-[11px] text-foreground-lighter">{item.count}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			</aside>
+		</div>
+	</Section>
 </Base>

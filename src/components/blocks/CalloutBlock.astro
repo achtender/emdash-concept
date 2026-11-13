@@ -1,0 +1,24 @@
+---
+import Callout from "../Callout.astro";
+import Container from "../Container.astro";
+
+interface Props {
+	value: {
+		tone?: string;
+		title?: string;
+		body: string;
+	};
+}
+
+const { value } = Astro.props;
+const variant =
+	value.tone === "warning" || value.tone === "tip" ? value.tone : ("note" as const);
+---
+
+<section class="py-6">
+	<Container>
+		<Callout variant={variant} title={value.title}>
+			<p>{value.body}</p>
+		</Callout>
+	</Container>
+</section>

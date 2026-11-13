@@ -1,0 +1,61 @@
+---
+/**
+ * Cover art for an entry. Renders the real media when one is attached and
+ * otherwise falls back to generated artwork tinted by a hash of the title.
+ */
+import type { MediaValue } from "emdash";
+import { Image } from "emdash/ui";
+import { hueFrom } from "../utils/format";
+
+interface Props {
+	title: string;
+	seed?: string;
+	image?: MediaValue | null;
+	ratio?: "wide" | "square" | "tall" | "banner";
+	priority?: boolean;
+	class?: string;
+}
+
+const {
+	title,
+	seed,
+	image,
+	ratio = "wide",
+	priority = false,
+	class: className,
+} = Astro.props;
+
+const ratios = {
+	wide: "aspect-[16/9]",
+	square: "aspect-square",
+	tall: "aspect-[4/5]",
+	banner: "aspect-[21/9]",
+};
+
+const hue = hueFrom(seed ?? title);
+---
+
+<div
+	class:list={[
+		"cover-art",
+		"relative w-full rounded-md border border-border",
+		ratios[ratio],
+		className,
+	]}
+	style={`--cover-hue: ${hue}`}
+>
+	{
+		image ? (
+			<Image image={image} alt={title} class="cover-art__image" priority={priority} />
+		) : (
+			<div class="flex h-full flex-col justify-between p-5" aria-hidden="true">
+				<span class="font-mono text-[10px] uppercase tracking-[0.2em] text-foreground/50">
+					Fieldwork
+				</span>
+				<span class="max-w-[85%] font-mono text-xs leading-snug text-foreground/60">
+					{title}
+				</span>
+			</div>
+		)
+	}
+</div>

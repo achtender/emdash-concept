@@ -1,0 +1,176 @@
+---
+import { getEmDashCollection, getTaxonomyTermsWithCacheHint } from "emdash";
+import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import EntryCard from "../../components/EntryCard.astro";
+import Cover from "../../components/Cover.astro";
+import Badge from "../../components/Badge.astro";
+import Pagination from "../../components/Pagination.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import { formatDate, readingTime } from "../../utils/format";
+import { flattenTerms } from "../../utils/terms";
+
+const cursor = Astro.url.searchParams.get("cursor") || undefined;
+const PAGE_SIZE = 9;
+
+const [postsResult, categoryResult, tagResult] = await Promise.all([
+	getEmDashCollection("posts", {
+		orderBy: { date: "desc" },
+		limit: PAGE_SIZE,
+		cursor,
+	}),
+	getTaxonomyTermsWithCacheHint("category", { includeCounts: true }),
+	getTaxonomyTermsWithCacheHint("tag", { includeCounts: true }),
+]);
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(postsResult.cacheHint);
+	Astro.cache.set(categoryResult.cacheHint);
+	Astro.cache.set(tagResult.cacheHint);
+}
+
+const posts = postsResult.entries;
+const categories = flattenTerms(categoryResult.data).filter((term) => (term.count ?? 0) > 0);
+const tags = flattenTerms(tagResult.data).filter((term) => (term.count ?? 0) > 0);
+
+// The spotlight only belongs on the unfiltered first page.
+const spotlight = cursor ? null : posts.find((post) => post.data.featured) ?? null;
+const grid = spotlight ? posts.filter((post) => post.id !== spotlight.id) : posts;
+---
+
+<Base
+	title="Journal"
+	description="Notes on craft, place, and the tools we keep. The Fieldwork journal is written slowly and edited in public."
+	canonical={`${Astro.url.origin}/journal`}
+>
+	<PageHeader
+		eyebrow="Fieldwork / Journal"
+		title="Notes from the studio"
+		description="Every entry is written from a place, credited to a person, and edited until it can be read aloud. Browse the archive, or follow a thread through the categories."
+	/>
+
+	<Section>
+		{
+			spotlight ? (
+				<article class="group mb-12 grid gap-6 overflow-hidden rounded-lg border border-border bg-surface-75 lg:grid-cols-[1.1fr_0.9fr]">
+					<a href={`/journal/${spotlight.id}`} class="block">
+						<Cover
+							title={spotlight.data.title}
+							seed={spotlight.id}
+							image={spotlight.data.cover}
+							ratio="wide"
+							priority
+							class="h-full rounded-none border-0 lg:border-r lg:border-border"
+						/>
+					</a>
+					<div class="flex flex-col justify-center p-6 sm:p-8">
+						<div class="flex flex-wrap items-center gap-2">
+							<Badge variant="primary">Featured</Badge>
+							<span class="font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+								{formatDate(spotlight.data.date)} · {readingTime(spotlight.data.content)} min
+							</span>
+						</div>
+						<h2 class="mt-3 text-2xl font-medium tracking-tight">
+							<a href={`/journal/${spotlight.id}`} class="underline-offset-4 hover:underline">
+								{spotlight.data.title}
+							</a>
+						</h2>
+						{spotlight.data.excerpt ? (
+							<p class="mt-3 max-w-prose text-sm leading-relaxed text-muted-foreground">
+								{spotlight.data.excerpt}
+							</p>
+						) : null}
+						<p class="mt-5 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+							{spotlight.data.bylines?.[0]?.byline.displayName ?? "Fieldwork"}
+						</p>
+					</div>
+				</article>
+			) : null
+		}
+
+		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem]">
+			<div>
+				<div class="flex items-center justify-between gap-4 border-b border-border pb-3">
+					<p class="heading-meta text-foreground-lighter">
+						{cursor ? "More entries" : `Latest ${posts.length} entries`}
+					</p>
+					<a href="/rss.xml" class="text-link font-mono text-[11px] uppercase tracking-wider">RSS</a>
+				</div>
+
+				{
+					grid.length > 0 ? (
+						<div class="mt-6 grid gap-5 sm:grid-cols-2">
+							{grid.map((post) => (
+								<EntryCard
+									href={`/journal/${post.id}`}
+									title={post.data.title}
+									description={post.data.excerpt}
+									meta={`${formatDate(post.data.date)} · ${readingTime(post.data.content)} min`}
+									badge={post.data.terms?.category?.[0]?.label}
+									image={post.data.cover}
+									seed={post.id}
+								/>
+							))}
+						</div>
+					) : (
+						<EmptyState
+							title="No entries on this page"
+							description="Try the first page of the archive."
+							actionLabel="Back to the journal"
+							actionHref="/journal"
+							class="mt-6"
+						/>
+					)
+				}
+
+				<Pagination basePath="/journal" nextCursor={postsResult.nextCursor} hasPrevious={Boolean(cursor)} />
+			</div>
+
+			<aside class="space-y-8 lg:sticky lg:top-20 lg:self-start">
+				<div>
+					<p class="heading-meta text-foreground-lighter">Categories</p>
+					<ul class="mt-3 space-y-1">
+						{categories.map((term) => (
+							<li>
+								<a
+									href={`/category/${term.slug}`}
+									class="flex items-baseline justify-between gap-3 py-1 text-sm text-muted-foreground transition-colors hover:text-foreground"
+								>
+									<span style={`padding-left: ${term.parentId ? "0.75rem" : "0"}`}>{term.label}</span>
+									<span class="font-mono text-[11px] text-foreground-lighter">{term.count}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+
+				<div>
+					<p class="heading-meta text-foreground-lighter">Tags</p>
+					<ul class="mt-3 flex flex-wrap gap-1.5">
+						{tags.map((term) => (
+							<li>
+								<a href={`/tag/${term.slug}`} class="inline-block">
+									<Badge class="transition-colors hover:border-border-strong hover:text-foreground">
+										{term.label}
+									</Badge>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+
+				<div class="rounded-md border border-border bg-surface-75 p-4">
+					<p class="heading-meta text-foreground-lighter">The handbook</p>
+					<p class="mt-2 text-sm leading-relaxed text-muted-foreground">
+						The practices behind the journal live in the handbook: how we write, edit, and
+						publish.
+					</p>
+					<a href="/handbook" class="text-link mt-3 inline-block font-mono text-[11px] uppercase tracking-wider">
+						Read the handbook
+					</a>
+				</div>
+			</aside>
+		</div>
+	</Section>
+</Base>

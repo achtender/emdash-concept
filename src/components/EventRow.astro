@@ -1,0 +1,70 @@
+---
+/**
+ * Compact event row used by the home page, the calendar page, and event lists.
+ */
+import type { MediaValue } from "emdash";
+import Badge from "./Badge.astro";
+import { formatTime } from "../utils/format";
+
+interface Props {
+	href: string;
+	title: string;
+	summary?: string | null;
+	start: Date | string;
+	end?: Date | string | null;
+	startTime?: string | null;
+	endTime?: string | null;
+	allDay?: boolean | null;
+	location?: string | null;
+	format?: string | null;
+	image?: MediaValue | null;
+}
+
+const {
+	href,
+	title,
+	summary,
+	start,
+	startTime,
+	endTime,
+	allDay,
+	location,
+	format,
+} = Astro.props;
+
+const day = new Intl.DateTimeFormat("en-US", { day: "2-digit" }).format(
+	new Date(typeof start === "string" ? start : start.toISOString()),
+);
+const month = new Intl.DateTimeFormat("en-US", { month: "short" }).format(
+	new Date(typeof start === "string" ? start : start.toISOString()),
+);
+const time = allDay
+	? "All day"
+	: [formatTime(startTime), formatTime(endTime)].filter(Boolean).join("–");
+---
+
+<a
+	href={href}
+	class="group grid grid-cols-[auto_1fr] gap-4 rounded-md border border-border bg-background p-4 transition-colors hover:border-border-strong sm:grid-cols-[auto_1fr_auto] sm:items-center sm:p-5"
+>
+	<div class="flex w-14 flex-col items-center justify-center rounded-sm border border-border bg-surface-100 py-2">
+		<span class="font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">{month}</span>
+		<span class="font-mono text-xl leading-none tracking-tight text-foreground">{day}</span>
+	</div>
+
+	<div class="min-w-0">
+		<div class="flex flex-wrap items-center gap-2">
+			{format ? <Badge>{format}</Badge> : null}
+			{time ? <span class="font-mono text-[11px] text-foreground-lighter">{time}</span> : null}
+		</div>
+		<h3 class="mt-1.5 text-base font-medium tracking-tight text-foreground">{title}</h3>
+		{summary ? <p class="mt-1 line-clamp-2 text-sm leading-relaxed text-muted-foreground">{summary}</p> : null}
+		{location ? (
+			<p class="mt-2 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">{location}</p>
+		) : null}
+	</div>
+
+	<span class="hidden font-mono text-[11px] uppercase tracking-wider text-primary sm:block">
+		Details
+	</span>
+</a>

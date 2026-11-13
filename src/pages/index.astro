@@ -1,50 +1,255 @@
 ---
 import { getEmDashCollection, getSiteSettings } from "emdash";
-import { Image } from "emdash/ui";
 import Base from "../layouts/Base.astro";
+import Container from "../components/Container.astro";
+import Section from "../components/Section.astro";
+import SectionHeading from "../components/SectionHeading.astro";
+import EntryCard from "../components/EntryCard.astro";
+import EventRow from "../components/EventRow.astro";
+import Cover from "../components/Cover.astro";
+import ButtonLink from "../components/ButtonLink.astro";
+import Badge from "../components/Badge.astro";
+import EmptyState from "../components/EmptyState.astro";
+import { formatDate, readingTime } from "../utils/format";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
-const { entries: posts, cacheHint } = await getEmDashCollection("posts", {
-	orderBy: { published_at: "desc" },
-	limit: 10,
-});
-const { siteTitle, siteTagline } = resolveStarterSiteIdentity(
-	await getSiteSettings(),
-);
-if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+const now = new Date().toISOString();
+
+const [postsResult, eventsResult, handbookResult, settings] = await Promise.all([
+	getEmDashCollection("posts", { orderBy: { date: "desc" }, limit: 8 }),
+	getEmDashCollection("events", {
+		where: { start: { gte: now } },
+		orderBy: { start: "asc" },
+		limit: 4,
+	}),
+	getEmDashCollection("handbook", { orderBy: { order: "asc" }, limit: 12 }),
+	getSiteSettings(),
+]);
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(postsResult.cacheHint);
+	Astro.cache.set(eventsResult.cacheHint);
+	Astro.cache.set(handbookResult.cacheHint);
+}
+
+const { siteTitle, siteTagline } = resolveStarterSiteIdentity(settings);
+
+const posts = postsResult.entries;
+const featured = posts.filter((post) => post.data.featured).slice(0, 3);
+const lead = featured[0] ?? posts[0];
+const recent = posts.filter((post) => post.id !== lead?.id).slice(0, 3);
+const events = eventsResult.entries;
+const chapters = handbookResult.entries.slice(0, 4);
+const bylines = [...new Map(posts.flatMap((post) => post.data.bylines ?? []).map((credit) => [credit.byline.slug, credit.byline])).values()].slice(0, 3);
 ---
 
-<Base title={siteTitle} description={siteTagline}>
-	<h1>Recent Posts</h1>
+<Base title={siteTitle} description={siteTagline} canonical={`${Astro.url.origin}/`}>
+	<section class="relative overflow-hidden border-b border-border">
+		<div class="hairline-grid pointer-events-none absolute inset-0 opacity-50" aria-hidden="true"></div>
+		<Container>
+			<div class="relative grid gap-12 py-14 lg:grid-cols-[1.1fr_0.9fr] lg:items-end lg:py-20">
+				<div>
+					<p class="heading-meta text-primary">Fieldwork / Journal</p>
+					<h1 class="display-hero mt-4 max-w-2xl text-balance">{siteTagline}</h1>
+					<p class="mt-6 max-w-xl text-base leading-relaxed text-muted-foreground">
+						A working journal about calm software, careful design, and the small editorial
+						teams who ship it. Written from a place, not a platform.
+					</p>
+					<div class="mt-8 flex flex-wrap items-center gap-3">
+						<ButtonLink href="/journal">Read the journal</ButtonLink>
+						<ButtonLink href="/calendar" variant="secondary">See the calendar</ButtonLink>
+					</div>
+					<div class="mt-10 grid max-w-lg grid-cols-3 gap-4 border-t border-border pt-5">
+						<div>
+							<p class="font-mono text-xl tracking-tight">{posts.length.toString().padStart(2, "0")}</p>
+							<p class="mt-1 text-xs text-muted-foreground">Journal entries</p>
+						</div>
+						<div>
+							<p class="font-mono text-xl tracking-tight">{handbookResult.entries.length.toString().padStart(2, "0")}</p>
+							<p class="mt-1 text-xs text-muted-foreground">Handbook chapters</p>
+						</div>
+						<div>
+							<p class="font-mono text-xl tracking-tight">{bylines.length.toString().padStart(2, "0")}</p>
+							<p class="mt-1 text-xs text-muted-foreground">Contributors</p>
+						</div>
+					</div>
+				</div>
 
-	{
-		posts.length === 0 ? (
-			<p>
-				No posts yet. <a href="/_emdash/admin/content/posts/new">Create one</a>.
-			</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<div {...post.edit.featured_image}><Image image={post.data.featured_image} /></div>
-							)}
-							<h2 {...post.edit.title}>{post.data.title}</h2>
+				{
+					lead ? (
+						<article class="group overflow-hidden rounded-lg border border-border bg-background">
+							<a href={`/journal/${lead.id}`} class="block">
+								<Cover
+									title={lead.data.title}
+									seed={lead.id}
+									image={lead.data.cover}
+									ratio="tall"
+									priority
+									class="rounded-none border-0 border-b border-border"
+								/>
+								<div class="p-6">
+									<div class="flex flex-wrap items-center gap-2">
+										<Badge variant="primary">Featured</Badge>
+										<span class="font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+											{formatDate(lead.data.date)} · {readingTime(lead.data.content)} min
+										</span>
+									</div>
+									<h2 class="mt-3 text-xl font-medium tracking-tight">{lead.data.title}</h2>
+									{lead.data.excerpt ? (
+										<p class="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">
+											{lead.data.excerpt}
+										</p>
+									) : null}
+								</div>
+							</a>
+						</article>
+					) : (
+						<EmptyState
+							title="The journal is being written"
+							description="Add a journal entry in the admin and it will appear here."
+							actionLabel="Open the admin"
+							actionHref="/_emdash/admin/content/posts/new"
+						/>
+					)
+				}
+			</div>
+		</Container>
+	</section>
+
+	<Section>
+		<SectionHeading label="From the journal" title="Recent notes" href="/journal" linkLabel="All entries" />
+		{
+			recent.length > 0 ? (
+				<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{recent.map((post) => (
+						<EntryCard
+							href={`/journal/${post.id}`}
+							title={post.data.title}
+							description={post.data.excerpt}
+							meta={`${formatDate(post.data.date)} · ${readingTime(post.data.content)} min`}
+							badge={post.data.terms?.category?.[0]?.label}
+							image={post.data.cover}
+							seed={post.id}
+						/>
+					))}
+				</div>
+			) : (
+				<EmptyState title="No other notes yet" class="mt-8" />
+			)
+		}
+	</Section>
+
+	<Section class="border-y border-border bg-surface-75">
+		<SectionHeading label="Calendar" title="Upcoming at the studio" href="/calendar" linkLabel="Full calendar" />
+		{
+			events.length > 0 ? (
+				<div class="mt-8 grid gap-3">
+					{events.map((event) => (
+						<EventRow
+							href={`/events/${event.id}`}
+							title={event.data.title}
+							summary={event.data.summary}
+							start={event.data.start}
+							end={event.data.end}
+							startTime={event.data.start_time}
+							endTime={event.data.end_time}
+							allDay={event.data.all_day}
+							location={event.data.location}
+							format={event.data.format}
+						/>
+					))}
+				</div>
+			) : (
+				<EmptyState
+					title="No events scheduled"
+					description="Create an event in the admin and it will appear on the calendar."
+					class="mt-8"
+				/>
+			)
+		}
+	</Section>
+
+	<Section>
+		<div class="grid gap-12 lg:grid-cols-[1.1fr_0.9fr]">
+			<div>
+				<SectionHeading label="Handbook" title="How the studio works" href="/handbook" linkLabel="Read the handbook" />
+				<ol class="mt-8 divide-y divide-border border-y border-border">
+					{chapters.map((chapter, index) => (
+						<li>
+							<a
+								href={`/handbook/${chapter.id}`}
+								class="group flex items-start gap-4 py-4 transition-colors hover:text-foreground"
+							>
+								<span class="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+									{String(index + 1).padStart(2, "0")}
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="block text-sm font-medium">{chapter.data.title}</span>
+									{chapter.data.summary ? (
+										<span class="mt-1 block line-clamp-1 text-sm text-muted-foreground">
+											{chapter.data.summary}
+										</span>
+									) : null}
+								</span>
+								<span class="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+									{chapter.data.section}
+								</span>
+							</a>
+						</li>
+					))}
+				</ol>
+			</div>
+
+			<div class="rounded-lg border border-border bg-surface-75 p-6 sm:p-8">
+				<p class="heading-meta text-foreground-lighter">The people</p>
+				<h2 class="heading-section mt-2">Written by three people who answer their email.</h2>
+				<p class="mt-3 text-sm leading-relaxed text-muted-foreground">
+					Every entry carries a byline. Authors are edited in EmDash alongside the content,
+					which means the credits stay as current as the writing.
+				</p>
+				<div class="mt-6 space-y-4">
+					{bylines.map((byline) => (
+						<a href={`/authors/${byline.slug}`} class="group flex items-start gap-3">
+							<span class="flex size-9 shrink-0 items-center justify-center rounded-full border border-border bg-surface-200 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
+								{byline.displayName
+									.split(/\s+/)
+									.filter(Boolean)
+									.slice(0, 2)
+									.map((part) => part.charAt(0))
+									.join("")}
+							</span>
+							<span class="min-w-0">
+								<span class="block text-sm font-medium group-hover:underline">{byline.displayName}</span>
+								{byline.bio ? (
+									<span class="mt-0.5 block line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+										{byline.bio}
+									</span>
+								) : null}
+							</span>
 						</a>
-						{post.data.excerpt && <p {...post.edit.excerpt}>{post.data.excerpt}</p>}
-						{post.data.publishedAt && (
-							<time datetime={post.data.publishedAt.toISOString()}>
-								{post.data.publishedAt.toLocaleDateString("en-US", {
-									year: "numeric",
-									month: "long",
-									day: "numeric",
-								})}
-							</time>
-						)}
-					</li>
-				))}
-			</ul>
-		)
-	}
+					))}
+				</div>
+				<a href="/authors" class="text-link mt-6 inline-block font-mono text-xs uppercase tracking-wider">
+					All contributors
+				</a>
+			</div>
+		</div>
+	</Section>
+
+	<section class="border-t border-border bg-surface-100">
+		<Container>
+			<div class="flex flex-col items-start justify-between gap-6 py-14 sm:flex-row sm:items-center">
+				<div>
+					<p class="heading-meta text-foreground-lighter">Stay in touch</p>
+					<h2 class="heading-section mt-2 max-w-xl text-balance">
+						A note every other Thursday. One piece, one update, one thing worth keeping.
+					</h2>
+				</div>
+				<div class="flex flex-wrap gap-3">
+					<ButtonLink href="/contact">Write to the studio</ButtonLink>
+					<ButtonLink href="/search" variant="secondary">Search the archive</ButtonLink>
+				</div>
+			</div>
+		</Container>
+	</section>
 </Base>

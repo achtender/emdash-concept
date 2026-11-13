@@ -1,0 +1,53 @@
+---
+import type { MediaValue } from "emdash";
+import { Image } from "emdash/ui";
+
+interface Props {
+	name: string;
+	image?: MediaValue | null;
+	size?: "sm" | "md" | "lg";
+	class?: string;
+}
+
+const { name, image, size = "md", class: className } = Astro.props;
+
+const sizes = {
+	sm: "size-8 text-xs",
+	md: "size-10 text-sm",
+	lg: "size-14 text-base",
+};
+
+function initials(value: string) {
+	return value
+		.split(/\s+/)
+		.filter(Boolean)
+		.slice(0, 2)
+		.map((part) => part.charAt(0).toUpperCase())
+		.join("");
+}
+---
+
+{
+	image ? (
+		<span
+			class:list={[
+				"inline-flex shrink-0 overflow-hidden rounded-full border border-border bg-surface-200",
+				sizes[size],
+				className,
+			]}
+		>
+			<Image image={image} alt={name} class="size-full object-cover" />
+		</span>
+	) : (
+		<span
+			class:list={[
+				"inline-flex shrink-0 items-center justify-center rounded-full border border-border bg-surface-200 font-mono uppercase tracking-wide text-muted-foreground",
+				sizes[size],
+				className,
+			]}
+			aria-hidden="true"
+		>
+			{initials(name)}
+		</span>
+	)
+}

@@ -1,0 +1,26 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Container from "./Container.astro";
+
+interface Props extends HTMLAttributes<"section"> {
+	container?: "default" | "narrow" | "wide" | "none";
+}
+
+const {
+	container = "default",
+	class: className,
+	...attrs
+} = Astro.props;
+---
+
+<section class:list={["py-12 sm:py-16", className]} {...attrs}>
+	{
+		container === "none" ? (
+			<slot />
+		) : (
+			<Container size={container}>
+				<slot />
+			</Container>
+		)
+	}
+</section>

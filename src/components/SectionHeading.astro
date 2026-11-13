@@ -1,0 +1,37 @@
+---
+import type { HTMLAttributes } from "astro/types";
+
+interface Props extends HTMLAttributes<"div"> {
+	label?: string;
+	title?: string;
+	href?: string;
+	linkLabel?: string;
+}
+
+const {
+	label,
+	title,
+	href,
+	linkLabel = "View all",
+	class: className,
+	...attrs
+} = Astro.props;
+---
+
+<div
+	class:list={["flex flex-wrap items-end justify-between gap-4", className]}
+	{...attrs}
+>
+	<div>
+		{label ? <p class="heading-meta text-foreground-lighter">{label}</p> : null}
+		{title ? <h2 class="heading-section mt-2">{title}</h2> : null}
+		<slot />
+	</div>
+	{
+		href ? (
+			<a href={href} class="text-link font-mono text-xs uppercase tracking-wider">
+				{linkLabel}
+			</a>
+		) : null
+	}
+</div>

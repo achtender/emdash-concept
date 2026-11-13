@@ -1,0 +1,182 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/source-code-pro";
+@import "tailwindcss";
+@import "./tokens.css";
+@import "./typography.css";
+@import "./prose.css";
+@import "./components.css";
+
+:root {
+	--font-inter: "Inter Variable";
+	--font-source-code-pro: "Source Code Pro Variable";
+}
+
+/* EmDash's LiveSearch uses these variables for theming. */
+:root {
+	--emdash-search-bg: var(--surface-75);
+	--emdash-search-text: var(--foreground);
+	--emdash-search-muted: var(--muted-foreground);
+	--emdash-search-border: var(--border);
+	--emdash-search-hover: var(--surface-200);
+	--emdash-search-highlight: var(--foreground);
+}
+
+/* Search page: widen the LiveSearch input and align the dropdown. */
+.search-theme .emdash-live-search {
+	display: block;
+	width: 100%;
+}
+
+.search-theme .search-input {
+	padding: 0.75rem 1rem;
+	font-size: 1rem;
+	border: 1px solid var(--border-strong);
+	border-radius: var(--radius);
+	background: var(--background);
+	color: var(--foreground);
+}
+
+.search-theme .search-input::placeholder {
+	color: var(--tertiary-foreground);
+}
+
+.search-theme .search-input:focus {
+	outline: none;
+	border-color: var(--primary);
+	box-shadow: 0 0 0 3px var(--ring);
+}
+
+.search-theme .search-results {
+	border-radius: var(--radius);
+	box-shadow: 0 12px 32px oklch(0 0 0 / 12%);
+}
+
+.search-theme .search-result {
+	border-bottom-color: var(--border);
+}
+
+.search-theme .search-result-snippet mark {
+	font-weight: 600;
+	background: none;
+	color: var(--primary);
+}
+
+/* EmDash comments: map the component's hardcoded fallbacks onto the theme. */
+.comments-theme {
+	--ec-comment-border-color: var(--border);
+	--ec-comment-border-color-dark: var(--border);
+	--ec-comment-gap: 1.5rem;
+	--ec-comment-indent: 1.5rem;
+	--ec-form-border: var(--border-strong);
+	--ec-form-bg: var(--background);
+	--ec-form-color: var(--foreground);
+	--ec-form-gap: 1rem;
+	--ec-form-user-bg: var(--surface-100);
+	--ec-form-user-border: var(--border);
+	--ec-form-user-bg-dark: var(--surface-100);
+	--ec-form-user-border-dark: var(--border);
+	--ec-form-submit-bg: var(--primary-solid);
+	--ec-form-submit-color: var(--primary-solid-foreground);
+	--ec-form-submit-bg-dark: var(--primary-solid);
+	--ec-form-submit-color-dark: var(--primary-solid-foreground);
+	--ec-form-success-color: var(--primary);
+	--ec-form-error-color: var(--destructive);
+}
+
+html.dark .comments-theme .ec-comment-form-field input,
+html.dark .comments-theme .ec-comment-form-field textarea {
+	--ec-form-bg: var(--background);
+	--ec-form-border: var(--border-strong);
+	--ec-form-color: var(--foreground);
+}
+
+.comments-theme .ec-comment-form-submit {
+	border-radius: var(--radius);
+	padding: 0.5rem 1rem;
+	font-size: 0.875rem;
+}
+
+.comments-theme .ec-comment-form-field input,
+.comments-theme .ec-comment-form-field textarea {
+	border-radius: var(--radius);
+}
+
+.comments-theme .ec-reaction {
+	border-radius: var(--radius);
+}
+
+/* Forms plugin: the contact form and any future embedded forms. */
+.ec-form-theme .ec-form {
+	--ec-form-gap: 1rem;
+	--ec-form-field-border: 1px solid var(--border-strong);
+	--ec-form-field-radius: var(--radius);
+	--ec-form-field-padding: 0.5rem 0.75rem;
+	--ec-form-field-bg: var(--background);
+	--ec-form-error-color: var(--destructive);
+	--ec-form-required-color: var(--destructive);
+	--ec-form-help-color: var(--tertiary-foreground);
+	--ec-form-submit-bg: var(--primary-solid);
+	--ec-form-submit-color: var(--primary-solid-foreground);
+	--ec-form-submit-radius: var(--radius);
+	--ec-form-submit-padding: 0.5rem 1rem;
+}
+
+.ec-form-theme .ec-form-label {
+	font-family: var(--font-mono);
+	font-size: 0.6875rem;
+	font-weight: 500;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: var(--tertiary-foreground);
+}
+
+.ec-form-theme .ec-form-input,
+.ec-form-theme .ec-form select,
+.ec-form-theme .ec-form textarea {
+	color: var(--foreground);
+}
+
+.ec-form-theme .ec-form-input:focus,
+.ec-form-theme .ec-form select:focus,
+.ec-form-theme .ec-form textarea:focus {
+	outline: 2px solid var(--ring);
+	outline-offset: 1px;
+}
+
+.ec-form-theme .ec-form-submit {
+	font-size: 0.875rem;
+	font-weight: 500;
+}
+
+.ec-form-theme .ec-form-submit:hover {
+	background: var(--primary-hover);
+	opacity: 1;
+}
+
+.ec-form-theme .ec-form-status--success {
+	background: oklch(0.95 0.04 var(--primary-hue));
+	border-color: var(--border);
+	color: var(--foreground);
+}
+
+.ec-form-theme .ec-form-status--error {
+	background: var(--surface-100);
+	border-color: var(--destructive);
+	color: var(--foreground);
+}
+
+html.dark .ec-form-theme .ec-form-status--success {
+	background: var(--surface-200);
+}
+
+/* Respect reduced-motion preferences for hover transitions. */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		scroll-behavior: auto !important;
+	}
+}

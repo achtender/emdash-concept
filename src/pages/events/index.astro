@@ -1,0 +1,104 @@
+---
+import { getEmDashCollection } from "emdash";
+import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import EventCard from "../../components/EventCard.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import { isoDate } from "../../utils/format";
+
+const { entries: events, cacheHint } = await getEmDashCollection("events", {
+	orderBy: { start: "asc" },
+	limit: 100,
+});
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const todayKey = isoDate(new Date()) ?? "";
+const upcoming = events.filter((event) => (isoDate(event.data.start) ?? "") >= todayKey);
+const past = events
+	.filter((event) => (isoDate(event.data.start) ?? "") < todayKey)
+	.reverse();
+---
+
+<Base
+	title="Events"
+	description="Workshops, open studios, readings, and clinics at the Fieldwork studio."
+	canonical={`${Astro.url.origin}/events`}
+>
+	<PageHeader
+		eyebrow="Fieldwork / Events"
+		title="Come and work alongside us"
+		description="The studio runs on conversation. Most events are small on purpose, and every one is a content entry you can edit in EmDash."
+	/>
+
+	<Section>
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<div>
+				<p class="heading-meta text-foreground-lighter">On the calendar</p>
+				<h2 class="heading-section mt-2">Upcoming</h2>
+			</div>
+			<a href="/calendar" class="text-link font-mono text-xs uppercase tracking-wider">Month view</a>
+		</div>
+
+		{
+			upcoming.length > 0 ? (
+				<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{upcoming.map((event) => (
+						<EventCard
+							href={`/events/${event.id}`}
+							title={event.data.title}
+							summary={event.data.summary}
+							start={event.data.start}
+							end={event.data.end}
+							startTime={event.data.start_time}
+							endTime={event.data.end_time}
+							allDay={event.data.all_day}
+							location={event.data.location}
+							format={event.data.format}
+							image={event.data.cover}
+							seed={event.id}
+						/>
+					))}
+				</div>
+			) : (
+				<EmptyState
+					title="No upcoming events"
+					description="New events are added in the admin and appear here automatically."
+					class="mt-8"
+				/>
+			)
+		}
+	</Section>
+
+	{
+		past.length > 0 ? (
+			<Section class="border-t border-border bg-surface-75">
+				<div class="flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="heading-meta text-foreground-lighter">The archive</p>
+						<h2 class="heading-section mt-2">Past events</h2>
+					</div>
+					<a href="/calendar" class="text-link font-mono text-xs uppercase tracking-wider">Calendar</a>
+				</div>
+				<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{past.map((event) => (
+						<EventCard
+							href={`/events/${event.id}`}
+							title={event.data.title}
+							summary={event.data.summary}
+							start={event.data.start}
+							end={event.data.end}
+							startTime={event.data.start_time}
+							endTime={event.data.end_time}
+							allDay={event.data.all_day}
+							location={event.data.location}
+							format={event.data.format}
+							image={event.data.cover}
+							seed={event.id}
+						/>
+					))}
+				</div>
+			</Section>
+		) : null
+	}
+</Base>

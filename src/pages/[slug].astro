@@ -1,29 +1,27 @@
 ---
-import { getEmDashEntry, getSeoMeta, decodeSlug, getSiteSettings } from "emdash";
-import { PortableText } from "emdash/ui";
+import { getEmDashEntry, getSeoMeta, getSiteSettings, decodeSlug } from "emdash";
 import Base from "../layouts/Base.astro";
+import PageHeader from "../components/PageHeader.astro";
+import PageBlocks from "../components/PageBlocks.astro";
+import Prose from "../components/Prose.astro";
+import Section from "../components/Section.astro";
 import { resolveStarterSiteIdentity } from "../utils/site-identity";
 
 const slug = decodeSlug(Astro.params.slug);
-
-if (!slug) {
-	return Astro.rewrite("/404");
-}
+if (!slug) return Astro.rewrite("/404");
 
 const { entry: page, cacheHint } = await getEmDashEntry("pages", slug);
-
-if (!page) {
-	return Astro.rewrite("/404");
-}
-
+if (!page) return Astro.rewrite("/404");
 if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
-const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
 
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
 const seo = getSeoMeta(page, {
 	siteTitle,
 	siteUrl: Astro.url.origin,
 	path: Astro.url.pathname.replace(/\/$/, ""),
 });
+
+const hasLayout = Array.isArray(page.data.layout) && page.data.layout.length > 0;
 ---
 
 <Base
@@ -31,11 +29,19 @@ const seo = getSeoMeta(page, {
 	pageTitle={seo.ogTitle}
 	description={seo.description}
 	canonical={seo.canonical}
+	image={seo.ogImage}
 	content={{ collection: "pages", id: page.data.id, slug }}
 >
-	<article>
-		<h1 {...page.edit.title}>{page.data.title}</h1>
-
-		<PortableText value={page.data.content} />
-	</article>
+	{
+		hasLayout ? (
+			<PageBlocks value={page.data.layout} />
+		) : (
+			<>
+				<PageHeader eyebrow="Fieldwork" title={page.data.title} description={page.data.excerpt} />
+				<Section container="narrow">
+					<Prose value={page.data.content} />
+				</Section>
+			</>
+		)
+	}
 </Base>

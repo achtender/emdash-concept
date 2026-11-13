@@ -1,21 +1,29 @@
 ---
-import {
-	getTaxonomyTermsWithCacheHint,
-	getEmDashCollection,
-	decodeSlug,
-} from "emdash";
-import { Image } from "emdash/ui";
+import { getEmDashCollection, getTaxonomyTermsWithCacheHint, decodeSlug } from "emdash";
 import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import EntryCard from "../../components/EntryCard.astro";
+import Badge from "../../components/Badge.astro";
+import Pagination from "../../components/Pagination.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import { formatDate, readingTime } from "../../utils/format";
+import { flattenTerms } from "../../utils/terms";
 
 const slug = decodeSlug(Astro.params.slug);
-const termsResult = await getTaxonomyTermsWithCacheHint("category", {
-	includeCounts: false,
-});
-const term = slug ? termsResult.data.find((item) => item.slug === slug) : null;
+if (!slug) return Astro.rewrite("/404");
 
-if (!term) {
-	return Astro.rewrite("/404");
+const [categoryResult, tagResult] = await Promise.all([
+	getTaxonomyTermsWithCacheHint("category", { includeCounts: true }),
+	getTaxonomyTermsWithCacheHint("tag", { includeCounts: true }),
+]);
+if (Astro.cache?.enabled) {
+	Astro.cache.set(categoryResult.cacheHint);
+	Astro.cache.set(tagResult.cacheHint);
 }
+
+const term = flattenTerms(categoryResult.data).find((item) => item.slug === slug);
+if (!term) return Astro.rewrite("/404");
 
 const cursor = Astro.url.searchParams.get("cursor") || undefined;
 const {
@@ -24,48 +32,125 @@ const {
 	nextCursor,
 } = await getEmDashCollection("posts", {
 	where: { category: term.slug },
-	orderBy: { published_at: "desc" },
-	limit: 20,
+	orderBy: { date: "desc" },
+	limit: 9,
 	cursor,
 });
-if (Astro.cache?.enabled) {
-	Astro.cache.set(termsResult.cacheHint);
-	Astro.cache.set(cacheHint);
-}
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+const allCategories = flattenTerms(categoryResult.data).filter((item) => (item.count ?? 0) > 0);
+const tags = flattenTerms(tagResult.data).filter((item) => (item.count ?? 0) > 0);
+const parent = term.parentId
+	? allCategories.find((item) => item.id === term.parentId) ?? null
+	: null;
+const children = term.children ?? [];
 ---
 
-<Base title={`${term.label} posts`} description={`Posts in ${term.label}`}>
-	<h1>{term.label}</h1>
-
-	{
-		posts.length === 0 ? (
-			<p>No posts in this category yet.</p>
-		) : (
-			<ul>
-				{posts.map((post) => (
-					<li>
-						<a href={`/posts/${post.id}`}>
-							{post.data.featured_image && (
-								<div {...post.edit.featured_image}><Image image={post.data.featured_image} /></div>
-							)}
-							<h2 {...post.edit.title}>{post.data.title}</h2>
-						</a>
-						{post.data.excerpt && <p {...post.edit.excerpt}>{post.data.excerpt}</p>}
-					</li>
-				))}
-			</ul>
-		)
-	}
-	<nav aria-label="Pagination">
-		{cursor && <a href={`/category/${term.slug}`}>First page</a>}
-		{
-			nextCursor && (
-				<a
-					href={`/category/${term.slug}?cursor=${encodeURIComponent(nextCursor)}`}
-				>
-					Next page
+<Base
+	title={term.label}
+	description={term.description ?? `Journal entries filed under ${term.label}.`}
+	canonical={`${Astro.url.origin}/category/${term.slug}`}
+>
+	<PageHeader eyebrow="Fieldwork / Category" title={term.label} description={term.description}>
+		<div class="mt-6 flex flex-wrap items-center gap-3 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+			{parent ? (
+				<a href={`/category/${parent.slug}`} class="text-link normal-case tracking-normal">
+					{parent.label}
 				</a>
-			)
-		}
-	</nav>
+			) : null}
+			{parent ? <span aria-hidden="true">/</span> : null}
+			<span>{term.count ?? posts.length} entries</span>
+		</div>
+	</PageHeader>
+
+	<Section>
+		<div class="grid gap-10 lg:grid-cols-[minmax(0,1fr)_15rem]">
+			<div>
+				{
+					posts.length > 0 ? (
+						<div class="grid gap-5 sm:grid-cols-2">
+							{posts.map((post) => (
+								<EntryCard
+									href={`/journal/${post.id}`}
+									title={post.data.title}
+									description={post.data.excerpt}
+									meta={`${formatDate(post.data.date)} · ${readingTime(post.data.content)} min`}
+									badge={post.data.terms?.category?.[0]?.label}
+									image={post.data.cover}
+									seed={post.id}
+								/>
+							))}
+						</div>
+					) : (
+						<EmptyState
+							title="No entries in this category yet"
+							description="Entries appear here as soon as they are filed and published."
+							actionLabel="Back to the journal"
+							actionHref="/journal"
+						/>
+					)
+				}
+
+				<Pagination basePath={`/category/${term.slug}`} nextCursor={nextCursor} hasPrevious={Boolean(cursor)} />
+			</div>
+
+			<aside class="space-y-8 lg:sticky lg:top-20 lg:self-start">
+				{
+					children.length > 0 ? (
+						<div>
+							<p class="heading-meta text-foreground-lighter">Within {term.label}</p>
+							<ul class="mt-3 space-y-1">
+								{children.map((child) => (
+									<li>
+										<a href={`/category/${child.slug}`} class="toc-link">
+											{child.label}
+										</a>
+									</li>
+								))}
+							</ul>
+						</div>
+					) : null
+				}
+
+				<div>
+					<p class="heading-meta text-foreground-lighter">All categories</p>
+					<ul class="mt-3 space-y-1">
+						{allCategories.map((item) => (
+							<li>
+								<a
+									href={`/category/${item.slug}`}
+									class:list={[
+										"flex items-baseline justify-between gap-3 py-1 text-sm transition-colors",
+										item.slug === term.slug
+											? "text-foreground"
+											: "text-muted-foreground hover:text-foreground",
+									]}
+								>
+									<span style={`padding-left: ${item.parentId ? "0.75rem" : "0"}`}>
+										{item.label}
+									</span>
+									<span class="font-mono text-[11px] text-foreground-lighter">{item.count}</span>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+
+				<div>
+					<p class="heading-meta text-foreground-lighter">Tags</p>
+					<ul class="mt-3 flex flex-wrap gap-1.5">
+						{tags.map((tag) => (
+							<li>
+								<a href={`/tag/${tag.slug}`} class="inline-block">
+									<Badge class="transition-colors hover:border-border-strong hover:text-foreground">
+										{tag.label}
+									</Badge>
+								</a>
+							</li>
+						))}
+					</ul>
+				</div>
+			</aside>
+		</div>
+	</Section>
 </Base>

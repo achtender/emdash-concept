@@ -1,9 +1,47 @@
 ---
 import Base from "../layouts/Base.astro";
+import Section from "../components/Section.astro";
+import Container from "../components/Container.astro";
+import ButtonLink from "../components/ButtonLink.astro";
+
+const destinations = [
+	{ label: "Journal", href: "/journal", note: "Slow writing from the studio" },
+	{ label: "Calendar", href: "/calendar", note: "Open studios and workshops" },
+	{ label: "Handbook", href: "/handbook", note: "How the work gets made" },
+	{ label: "Authors", href: "/authors", note: "The people behind the bylines" },
+];
 ---
 
-<Base title="Not Found">
-	<h1>Page not found</h1>
-	<p>The page you're looking for doesn't exist.</p>
-	<a href="/">Go home</a>
+<Base title="Page not found">
+	<Section>
+		<Container size="narrow">
+			<p class="heading-meta text-primary">404 / Off the map</p>
+			<h1 class="display-section mt-4 text-balance">This page is not in the notebook.</h1>
+			<p class="mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
+				The link may be out of date, or the entry may have been moved. The archive is still open;
+				start from one of these places.
+			</p>
+
+			<div class="mt-8 flex flex-wrap gap-3">
+				<ButtonLink href="/">Back to the home page</ButtonLink>
+				<ButtonLink href="/search" variant="secondary">Search the archive</ButtonLink>
+			</div>
+
+			<ul class="mt-12 divide-y divide-border border-y border-border">
+				{destinations.map((destination) => (
+					<li>
+						<a
+							href={destination.href}
+							class="group flex items-baseline justify-between gap-4 py-4 transition-colors"
+						>
+							<span class="text-sm font-medium group-hover:underline">{destination.label}</span>
+							<span class="font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+								{destination.note}
+							</span>
+						</a>
+					</li>
+				))}
+			</ul>
+		</Container>
+	</Section>
 </Base>

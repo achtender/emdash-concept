@@ -1,0 +1,26 @@
+---
+import { Blocks } from "emdash/ui";
+import type { BlockComponents, BlockValue } from "emdash/ui";
+import Hero from "./blocks/Hero.astro";
+import FeatureGrid from "./blocks/FeatureGrid.astro";
+import CalloutBlock from "./blocks/CalloutBlock.astro";
+import Stats from "./blocks/Stats.astro";
+import Cta from "./blocks/Cta.astro";
+import Quote from "./blocks/Quote.astro";
+
+interface Props {
+	value?: readonly BlockValue[] | null;
+}
+
+const { value } = Astro.props;
+const components = {
+	hero: Hero,
+	feature_grid: FeatureGrid,
+	callout: CalloutBlock,
+	stats: Stats,
+	cta: Cta,
+	quote: Quote,
+} as unknown as Partial<BlockComponents<BlockValue>>;
+---
+
+<Blocks value={value} components={components} />

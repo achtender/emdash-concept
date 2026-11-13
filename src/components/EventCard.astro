@@ -1,0 +1,68 @@
+---
+/**
+ * Event card with generated cover art, for grids and the calendar sidebar.
+ */
+import type { MediaValue } from "emdash";
+import Badge from "./Badge.astro";
+import Cover from "./Cover.astro";
+import { formatDateRange, formatTime } from "../utils/format";
+
+interface Props {
+	href: string;
+	title: string;
+	summary?: string | null;
+	start: Date | string;
+	end?: Date | string | null;
+	startTime?: string | null;
+	endTime?: string | null;
+	allDay?: boolean | null;
+	location?: string | null;
+	format?: string | null;
+	image?: MediaValue | null;
+	seed?: string;
+}
+
+const {
+	href,
+	title,
+	summary,
+	start,
+	end,
+	startTime,
+	endTime,
+	allDay,
+	location,
+	format,
+	image,
+	seed,
+} = Astro.props;
+
+const dateLabel = formatDateRange(start, end ?? start);
+const time = allDay
+	? "All day"
+	: [formatTime(startTime), formatTime(endTime)].filter(Boolean).join("–");
+---
+
+<article class="group flex h-full flex-col overflow-hidden rounded-lg border border-border bg-surface-75 transition-colors hover:border-border-strong">
+	<a href={href} class="flex h-full flex-col focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring">
+		<Cover
+			title={title}
+			seed={seed ?? href}
+			image={image}
+			ratio="banner"
+			class="rounded-none border-0 border-b border-border"
+		/>
+		<div class="flex flex-1 flex-col p-5">
+			<div class="flex flex-wrap items-center gap-2">
+				{format ? <Badge variant="primary">{format}</Badge> : null}
+				<span class="font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">{dateLabel}</span>
+			</div>
+			<h3 class="mt-3 text-base font-medium tracking-tight">{title}</h3>
+			{summary ? <p class="mt-2 line-clamp-3 text-sm leading-relaxed text-muted-foreground">{summary}</p> : null}
+			<div class="mt-auto flex items-center justify-between gap-3 pt-5 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+				<span>{time}</span>
+				{location ? <span class="truncate text-right">{location}</span> : null}
+			</div>
+		</div>
+	</a>
+</article>

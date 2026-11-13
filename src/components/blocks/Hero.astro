@@ -1,0 +1,53 @@
+---
+import ButtonLink from "../ButtonLink.astro";
+import Container from "../Container.astro";
+
+interface Props {
+	value: {
+		eyebrow?: string;
+		heading: string;
+		body?: string;
+		action_label?: string;
+		action_href?: string;
+		secondary_label?: string;
+		secondary_href?: string;
+	};
+}
+
+const { value } = Astro.props;
+const hasActions = Boolean(
+	(value.action_label && value.action_href) ||
+		(value.secondary_label && value.secondary_href),
+);
+---
+
+<section class="relative overflow-hidden border-b border-border bg-surface-75">
+	<div class="hairline-grid pointer-events-none absolute inset-0 opacity-40" aria-hidden="true"></div>
+	<Container>
+		<div class="relative py-16 sm:py-24">
+			{value.eyebrow ? <p class="heading-meta text-primary">{value.eyebrow}</p> : null}
+			<h1 class="display-hero mt-4 max-w-4xl text-balance">{value.heading}</h1>
+			{
+				value.body ? (
+					<p class="mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground">
+						{value.body}
+					</p>
+				) : null
+			}
+			{
+				hasActions ? (
+					<div class="mt-8 flex flex-wrap items-center gap-3">
+						{value.action_label && value.action_href ? (
+							<ButtonLink href={value.action_href}>{value.action_label}</ButtonLink>
+						) : null}
+						{value.secondary_label && value.secondary_href ? (
+							<ButtonLink href={value.secondary_href} variant="secondary">
+								{value.secondary_label}
+							</ButtonLink>
+						) : null}
+					</div>
+				) : null
+			}
+		</div>
+	</Container>
+</section>

@@ -1,0 +1,60 @@
+---
+/**
+ * Renders the byline credits for an entry.
+ *
+ * EmDash hydrates `entry.data.bylines` with a `BylineSummary` per credit. We
+ * link each name to the local author page and show the optional role label.
+ */
+import type { ContentBylineCredit } from "emdash";
+import Avatar from "./Avatar.astro";
+
+interface Props {
+	bylines?: ContentBylineCredit[] | null;
+	size?: "sm" | "md" | "lg";
+	showRole?: boolean;
+	link?: boolean;
+	class?: string;
+}
+
+const {
+	bylines,
+	size = "sm",
+	showRole = true,
+	link = true,
+	class: className,
+} = Astro.props;
+
+const credits = Array.isArray(bylines) ? bylines : [];
+---
+
+{
+	credits.length > 0 ? (
+		<ul class:list={["flex flex-wrap items-center gap-x-5 gap-y-3", className]}>
+			{credits.map((credit) => {
+				const { byline, roleLabel } = credit;
+				return (
+					<li class="flex items-center gap-2.5">
+						<Avatar name={byline.displayName} size={size} />
+						<span class="text-sm leading-tight">
+							{link ? (
+								<a
+									href={`/authors/${byline.slug}`}
+									class="font-medium text-foreground underline-offset-4 hover:underline"
+								>
+									{byline.displayName}
+								</a>
+							) : (
+								<span class="font-medium text-foreground">{byline.displayName}</span>
+							)}
+							{showRole && roleLabel ? (
+								<span class="block font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+									{roleLabel}
+								</span>
+							) : null}
+						</span>
+					</li>
+				);
+			})}
+		</ul>
+	) : null
+}

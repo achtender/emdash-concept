@@ -3,7 +3,80 @@
 
 /// <reference types="emdash/locals" />
 
-import type { BylineSummary, ContentBylineCredit, TaxonomyTerm, PortableTextBlock } from "emdash";
+import type { BylineSummary, ContentBylineCredit, TaxonomyTerm, PortableTextBlock, ReferencePage } from "emdash";
+
+export interface PageLayoutHeroV1Block {
+  _type: "hero";
+  _version: 1;
+  _key: string;
+  "eyebrow"?: string | null;
+  "heading": string;
+  "body"?: string | null;
+  "action_label"?: string | null;
+  "action_href"?: string | null;
+  "secondary_label"?: string | null;
+  "secondary_href"?: string | null;
+}
+
+export type PageLayoutHeroBlock = PageLayoutHeroV1Block;
+
+export interface PageLayoutFeatureGridV1Block {
+  _type: "feature_grid";
+  _version: 1;
+  _key: string;
+  "label"?: string | null;
+  "heading"?: string | null;
+  "intro"?: string | null;
+  "items"?: { "title": string; "description"?: string | null; "meta"?: string | null }[] | null;
+}
+
+export type PageLayoutFeatureGridBlock = PageLayoutFeatureGridV1Block;
+
+export interface PageLayoutCalloutV1Block {
+  _type: "callout";
+  _version: 1;
+  _key: string;
+  "tone"?: string | null;
+  "title"?: string | null;
+  "body": string;
+}
+
+export type PageLayoutCalloutBlock = PageLayoutCalloutV1Block;
+
+export interface PageLayoutStatsV1Block {
+  _type: "stats";
+  _version: 1;
+  _key: string;
+  "heading"?: string | null;
+  "items"?: { "value": string; "label": string }[] | null;
+}
+
+export type PageLayoutStatsBlock = PageLayoutStatsV1Block;
+
+export interface PageLayoutCtaV1Block {
+  _type: "cta";
+  _version: 1;
+  _key: string;
+  "heading": string;
+  "body"?: string | null;
+  "action_label"?: string | null;
+  "action_href"?: string | null;
+}
+
+export type PageLayoutCtaBlock = PageLayoutCtaV1Block;
+
+export interface PageLayoutQuoteV1Block {
+  _type: "quote";
+  _version: 1;
+  _key: string;
+  "quote": string;
+  "attribution"?: string | null;
+  "role"?: string | null;
+}
+
+export type PageLayoutQuoteBlock = PageLayoutQuoteV1Block;
+
+export type PageLayoutBlock = PageLayoutHeroBlock | PageLayoutFeatureGridBlock | PageLayoutCalloutBlock | PageLayoutStatsBlock | PageLayoutCtaBlock | PageLayoutQuoteBlock;
 
 export interface Page {
   id: string;
@@ -11,6 +84,9 @@ export interface Page {
   status: string;
   title: string;
   content?: PortableTextBlock[];
+  excerpt?: string;
+  layout?: PageLayoutBlock[];
+  cover?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;
@@ -24,9 +100,11 @@ export interface Post {
   slug: string | null;
   status: string;
   title: string;
-  featured_image?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
   content?: PortableTextBlock[];
   excerpt?: string;
+  cover?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
+  date: string;
+  featured?: boolean;
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;
@@ -35,22 +113,67 @@ export interface Post {
   terms?: Record<string, TaxonomyTerm[]>;
 }
 
-export interface Wiki {
+export interface Event {
   id: string;
   slug: string | null;
   status: string;
+  title: string;
+  summary?: string;
+  content?: PortableTextBlock[];
+  cover?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown>; darkVariant?: { id: string; src?: string; alt?: string; caption?: string; width?: number; height?: number; filename?: string; mimeType?: string; blurhash?: string; dominantColor?: string; focalX?: number; focalY?: number; provider?: string; previewUrl?: string; meta?: Record<string, unknown> } };
+  start: string;
+  end?: string;
+  start_time?: string;
+  end_time?: string;
+  all_day?: boolean;
+  location?: string;
+  format?: "In person" | "Online" | "Hybrid";
+  registration_url?: string;
+  capacity?: number;
+  audience?: ("Writers" | "Designers" | "Developers" | "Editors" | "Everyone")[];
+  takeaways?: unknown;
   createdAt: Date;
   updatedAt: Date;
   publishedAt: Date | null;
   byline?: BylineSummary | null;
   bylines?: ContentBylineCredit[];
   terms?: Record<string, TaxonomyTerm[]>;
+}
+
+export interface Handbook {
+  id: string;
+  slug: string | null;
+  status: string;
+  title: string;
+  summary?: string;
+  content?: PortableTextBlock[];
+  section: "Foundations" | "Craft" | "Process" | "Standards";
+  order?: number;
+  updated?: string;
+  reading_time?: number;
+  audience?: ("Writers" | "Designers" | "Developers" | "Editors" | "Everyone")[];
+  resources?: { "label": string; "url"?: string | null; "kind"?: "Template" | "Reading" | "Tool" | null }[];
+  attachment?: { id: string; url?: string; src?: string; filename?: string; mimeType?: string; size?: number; provider?: string; meta?: Record<string, unknown> };
+  createdAt: Date;
+  updatedAt: Date;
+  publishedAt: Date | null;
+  byline?: BylineSummary | null;
+  bylines?: ContentBylineCredit[];
+  terms?: Record<string, TaxonomyTerm[]>;
+}
+
+export interface PostReferences {
+  related: ReferencePage<Post>;
 }
 
 declare module "emdash" {
   interface EmDashCollections {
     pages: Page;
     posts: Post;
-    wikis: Wiki;
+    events: Event;
+    handbook: Handbook;
+  }
+  interface EmDashCollectionReferences {
+    posts: PostReferences;
   }
 }

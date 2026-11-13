@@ -1,0 +1,185 @@
+---
+import {
+	getEmDashEntry,
+	getEmDashReferences,
+	getSeoMeta,
+	getSiteSettings,
+	decodeSlug,
+} from "emdash";
+import type { MediaValue, TaxonomyTerm } from "emdash";
+import { Comments, CommentForm } from "emdash/ui/comments";
+import Base from "../../layouts/Base.astro";
+import Container from "../../components/Container.astro";
+import Section from "../../components/Section.astro";
+import Cover from "../../components/Cover.astro";
+import Badge from "../../components/Badge.astro";
+import Byline from "../../components/Byline.astro";
+import Prose from "../../components/Prose.astro";
+import Toc from "../../components/Toc.astro";
+import EntryCard from "../../components/EntryCard.astro";
+import { formatDate, getHeadings, readingTime } from "../../utils/format";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.rewrite("/404");
+
+const { entry: post, cacheHint } = await getEmDashEntry("posts", slug);
+if (!post) return Astro.rewrite("/404");
+if (Astro.cache?.enabled) Astro.cache.set(cacheHint);
+
+interface RelatedPost {
+	id: string;
+	data: {
+		title: string;
+		excerpt?: string | null;
+		date?: string;
+		cover?: MediaValue | null;
+		terms?: Record<string, TaxonomyTerm[]>;
+	};
+}
+
+const relatedResult = await getEmDashReferences<RelatedPost["data"]>("posts", post.data.id, "related", {
+	limit: 3,
+});
+const related = relatedResult.entries as RelatedPost[];
+
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const seo = getSeoMeta(post, {
+	siteTitle,
+	siteUrl: Astro.url.origin,
+	path: Astro.url.pathname.replace(/\/$/, ""),
+});
+
+const categories = post.data.terms?.category ?? [];
+const tags = post.data.terms?.tag ?? [];
+const headings = getHeadings(post.data.content);
+---
+
+<Base
+	title={seo.title}
+	pageTitle={seo.ogTitle}
+	description={seo.description}
+	canonical={seo.canonical}
+	image={seo.ogImage}
+	content={{ collection: "posts", id: post.data.id, slug }}
+>
+	<article>
+		<header class="border-b border-border bg-surface-75">
+			<Container size="narrow">
+				<div class="py-12 sm:py-16">
+					<div class="flex flex-wrap items-center gap-2">
+						{categories.map((category) => (
+							<a href={`/category/${category.slug}`}>
+								<Badge variant="primary">{category.label}</Badge>
+							</a>
+						))}
+						<span class="font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+							{formatDate(post.data.date)} · {readingTime(post.data.content)} min read
+						</span>
+					</div>
+
+					<h1 class="display-section mt-4 text-balance" {...post.edit.title}>{post.data.title}</h1>
+
+					{post.data.excerpt ? (
+						<p class="mt-4 max-w-2xl text-lg leading-relaxed text-muted-foreground" {...post.edit.excerpt}>
+							{post.data.excerpt}
+						</p>
+					) : null}
+
+					<Byline bylines={post.data.bylines} size="md" class="mt-8" />
+				</div>
+			</Container>
+		</header>
+
+		<Container size="narrow">
+			<Cover
+				title={post.data.title}
+				seed={post.id}
+				image={post.data.cover}
+				ratio="wide"
+				priority
+				class="mt-10"
+			/>
+		</Container>
+
+		<Section container="narrow" class="pt-10 sm:pt-12">
+			<div class="grid gap-12 lg:grid-cols-[minmax(0,1fr)_13rem]">
+				<div>
+					<Prose value={post.data.content} />
+
+					{tags.length > 0 ? (
+						<div class="mt-12 flex flex-wrap items-center gap-2 border-t border-border pt-6">
+							<span class="heading-meta mr-1 text-foreground-lighter">Filed under</span>
+							{tags.map((tag) => (
+								<a href={`/tag/${tag.slug}`}>
+									<Badge class="transition-colors hover:border-border-strong hover:text-foreground">
+										{tag.label}
+									</Badge>
+								</a>
+							))}
+						</div>
+					) : null}
+				</div>
+
+				<aside class="space-y-8 lg:sticky lg:top-20 lg:self-start">
+					<Toc headings={headings} />
+					<div class="border-t border-border pt-5">
+						<p class="heading-meta text-foreground-lighter">Credits</p>
+						<div class="mt-3">
+							<Byline bylines={post.data.bylines} />
+						</div>
+					</div>
+				</aside>
+			</div>
+		</Section>
+
+		{
+			related.length > 0 ? (
+				<Section class="border-y border-border bg-surface-75">
+					<div class="flex flex-wrap items-end justify-between gap-4">
+						<div>
+							<p class="heading-meta text-foreground-lighter">Keep reading</p>
+							<h2 class="heading-section mt-2">Related entries</h2>
+						</div>
+						<a href="/journal" class="text-link font-mono text-xs uppercase tracking-wider">
+							All entries
+						</a>
+					</div>
+					<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+						{related.map((entry) => (
+							<EntryCard
+								href={`/journal/${entry.id}`}
+								title={entry.data.title}
+								description={entry.data.excerpt}
+								meta={formatDate(entry.data.date)}
+								badge={entry.data.terms?.category?.[0]?.label}
+								image={entry.data.cover}
+								seed={entry.id}
+							/>
+						))}
+					</div>
+				</Section>
+			) : null
+		}
+
+		<Section container="narrow">
+			<div class="comments-theme">
+				<div class="flex flex-wrap items-end justify-between gap-4 border-b border-border pb-4">
+					<div>
+						<p class="heading-meta text-foreground-lighter">Discussion</p>
+						<h2 class="heading-section mt-2">Reader notes</h2>
+					</div>
+					<p class="max-w-sm text-xs leading-relaxed text-muted-foreground">
+						Comments are stored in EmDash and moderated in the admin. Be kind; this is a
+						small room.
+					</p>
+				</div>
+				<Comments collection="posts" contentId={post.data.id} threaded class="mt-8" />
+				<div class="mt-10 border-t border-border pt-8">
+					<h3 class="heading-subSection">Leave a note</h3>
+					<CommentForm collection="posts" contentId={post.data.id} class="mt-4" />
+				</div>
+			</div>
+		</Section>
+	</article>
+</Base>

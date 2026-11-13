@@ -1,0 +1,127 @@
+---
+import { getEmDashCollection } from "emdash";
+import type { BylineSummary, ContentBylineCredit } from "emdash";
+import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import Avatar from "../../components/Avatar.astro";
+import Badge from "../../components/Badge.astro";
+
+const [postsResult, eventsResult, handbookResult, pagesResult] = await Promise.all([
+	getEmDashCollection("posts", { orderBy: { date: "desc" }, limit: 100 }),
+	getEmDashCollection("events", { orderBy: { start: "asc" }, limit: 100 }),
+	getEmDashCollection("handbook", { orderBy: { order: "asc" }, limit: 100 }),
+	getEmDashCollection("pages", { limit: 100 }),
+]);
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(postsResult.cacheHint);
+	Astro.cache.set(eventsResult.cacheHint);
+	Astro.cache.set(handbookResult.cacheHint);
+	Astro.cache.set(pagesResult.cacheHint);
+}
+
+interface AuthorRecord {
+	byline: BylineSummary;
+	roles: Set<string>;
+	collections: Set<string>;
+	entries: number;
+}
+
+const authors = new Map<string, AuthorRecord>();
+
+function collect(
+	entries: Array<{ data: { bylines?: ContentBylineCredit[] } }>,
+	collection: string,
+) {
+	for (const entry of entries) {
+		for (const credit of entry.data.bylines ?? []) {
+			const existing = authors.get(credit.byline.slug) ?? {
+				byline: credit.byline,
+				roles: new Set<string>(),
+				collections: new Set<string>(),
+				entries: 0,
+			};
+			if (credit.roleLabel) existing.roles.add(credit.roleLabel);
+			existing.collections.add(collection);
+			existing.entries += 1;
+			authors.set(credit.byline.slug, existing);
+		}
+	}
+}
+
+collect(postsResult.entries, "Journal");
+collect(eventsResult.entries, "Events");
+collect(handbookResult.entries, "Handbook");
+collect(pagesResult.entries, "Pages");
+
+const people = [...authors.values()].sort((a, b) =>
+	a.byline.displayName.localeCompare(b.byline.displayName),
+);
+---
+
+<Base
+	title="Authors"
+	description="The people who write, edit, design, and host at Fieldwork."
+	canonical={`${Astro.url.origin}/authors`}
+>
+	<PageHeader
+		eyebrow="Fieldwork / People"
+		title="The people behind the work"
+		description="Every entry carries a byline. Authors are managed in EmDash alongside the content, so a credit is a real record with a bio and a page, not a string typed into a field."
+	/>
+
+	<Section>
+		{
+			people.length > 0 ? (
+				<div class="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{people.map((author) => (
+						<article class="flex h-full flex-col rounded-lg border border-border bg-surface-75 p-6 transition-colors hover:border-border-strong">
+							<div class="flex items-start gap-4">
+								<Avatar name={author.byline.displayName} size="lg" />
+								<div class="min-w-0">
+									<h2 class="text-lg font-medium tracking-tight">
+										<a href={`/authors/${author.byline.slug}`} class="underline-offset-4 hover:underline">
+											{author.byline.displayName}
+										</a>
+									</h2>
+									{author.roles.size > 0 ? (
+										<p class="mt-1 font-mono text-[10px] uppercase tracking-wider text-foreground-lighter">
+											{[...author.roles].join(" · ")}
+										</p>
+									) : null}
+								</div>
+							</div>
+
+							{author.byline.bio ? (
+								<p class="mt-4 line-clamp-4 text-sm leading-relaxed text-muted-foreground">
+									{author.byline.bio}
+								</p>
+							) : null}
+
+							<div class="mt-auto flex flex-wrap items-center gap-1.5 pt-5">
+								{[...author.collections].map((collection) => (
+									<Badge>{collection}</Badge>
+								))}
+								<span class="ml-auto font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+									{author.entries} {author.entries === 1 ? "credit" : "credits"}
+								</span>
+							</div>
+
+							<a
+								href={`/authors/${author.byline.slug}`}
+								class="text-link mt-4 inline-block font-mono text-[11px] uppercase tracking-wider"
+							>
+								Read their work
+							</a>
+						</article>
+					))}
+				</div>
+			) : (
+				<p class="text-sm text-muted-foreground">
+					No bylines yet. Add a byline in the admin and credit it on an entry.
+				</p>
+			)
+		}
+	</Section>
+</Base>

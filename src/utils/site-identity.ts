@@ -12,8 +12,8 @@ export interface StarterSiteIdentitySettings {
 	favicon?: MediaReference;
 }
 
-const DEFAULT_SITE_TITLE = "My Site";
-const DEFAULT_SITE_TAGLINE = "Built with EmDash";
+const DEFAULT_SITE_TITLE = "Fieldwork";
+const DEFAULT_SITE_TAGLINE = "Notes on craft, place, and the tools we keep.";
 
 export function resolveStarterSiteIdentity(settings?: StarterSiteIdentitySettings) {
 	return {

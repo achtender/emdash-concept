@@ -1,0 +1,87 @@
+---
+import Container from "./Container.astro";
+
+interface FooterLink {
+	label: string;
+	url: string;
+	target?: string | null;
+}
+
+interface FooterColumn {
+	label: string;
+	items: FooterLink[];
+}
+
+interface Props {
+	siteName: string;
+	tagline?: string;
+	columns?: FooterColumn[];
+	note?: string;
+}
+
+const {
+	siteName,
+	tagline,
+	columns = [],
+	note,
+} = Astro.props;
+
+const year = new Date().getFullYear();
+---
+
+<footer class="mt-20 border-t border-border bg-surface-75">
+	<Container>
+		<div class="grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-4">
+			<div class="lg:col-span-2">
+				<a
+					href="/"
+					class="inline-flex items-center gap-2 rounded-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+				>
+					<span
+						class="flex size-6 items-center justify-center rounded-sm bg-primary-solid text-[11px] font-semibold text-primary-solid-foreground"
+					>
+						{siteName.charAt(0)}
+					</span>
+					<span class="text-sm font-medium tracking-tight">{siteName}</span>
+				</a>
+				{tagline ? <p class="mt-3 max-w-sm text-sm leading-relaxed text-muted-foreground">{tagline}</p> : null}
+				{note ? <p class="mt-6 max-w-sm font-mono text-[11px] leading-relaxed text-foreground-lighter">{note}</p> : null}
+			</div>
+
+			{
+				columns.map((column) => (
+					<div>
+						<p class="heading-meta text-foreground-lighter">{column.label}</p>
+						<ul class="mt-3 space-y-2">
+							{column.items.map((item) => (
+								<li>
+									<a
+										href={item.url}
+										target={item.target ?? undefined}
+										rel={item.target === "_blank" ? "noopener noreferrer" : undefined}
+										class="text-sm text-muted-foreground transition-colors hover:text-foreground"
+									>
+										{item.label}
+									</a>
+								</li>
+							))}
+						</ul>
+					</div>
+				))
+			}
+		</div>
+
+		<div
+			class="flex flex-col gap-3 border-t border-border py-6 sm:flex-row sm:items-center sm:justify-between"
+		>
+			<p class="font-mono text-[11px] text-foreground-lighter">
+				© {year} {siteName}. Built with EmDash and Astro.
+			</p>
+			<p class="font-mono text-[11px] text-foreground-lighter">
+				<a href="/rss.xml" class="hover:text-foreground">RSS</a>
+				<span aria-hidden="true"> · </span>
+				<a href="/_emdash/admin" class="hover:text-foreground">Admin</a>
+			</p>
+		</div>
+	</Container>
+</footer>

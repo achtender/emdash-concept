@@ -1,0 +1,35 @@
+---
+import type { HTMLAttributes } from "astro/types";
+import Container from "./Container.astro";
+
+interface Props extends HTMLAttributes<"section"> {
+	eyebrow?: string;
+	title: string;
+	description?: string | null;
+}
+
+const {
+	eyebrow,
+	title,
+	description,
+	class: className,
+	...attrs
+} = Astro.props;
+---
+
+<section class:list={["border-b border-border bg-surface-75", className]} {...attrs}>
+	<Container>
+		<div class="py-12 sm:py-16">
+			{eyebrow ? <p class="heading-meta text-foreground-lighter">{eyebrow}</p> : null}
+			<h1 class="display-section mt-3">{title}</h1>
+			{
+				description ? (
+					<p class="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">
+						{description}
+					</p>
+				) : null
+			}
+			<slot />
+		</div>
+	</Container>
+</section>

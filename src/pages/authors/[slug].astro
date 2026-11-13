@@ -1,0 +1,213 @@
+---
+import { getBylineBySlug, getEmDashCollection, getSeoMeta, getSiteSettings, decodeSlug } from "emdash";
+import Base from "../../layouts/Base.astro";
+import PageHeader from "../../components/PageHeader.astro";
+import Section from "../../components/Section.astro";
+import Avatar from "../../components/Avatar.astro";
+import EntryCard from "../../components/EntryCard.astro";
+import EventRow from "../../components/EventRow.astro";
+import Badge from "../../components/Badge.astro";
+import EmptyState from "../../components/EmptyState.astro";
+import { formatDate, readingTime } from "../../utils/format";
+import { resolveStarterSiteIdentity } from "../../utils/site-identity";
+
+const slug = decodeSlug(Astro.params.slug);
+if (!slug) return Astro.rewrite("/404");
+
+const byline = await getBylineBySlug(slug);
+if (!byline) return Astro.rewrite("/404");
+
+const bylineKey = byline.translationGroup ?? byline.id;
+
+const [postsResult, eventsResult, handbookResult] = await Promise.all([
+	getEmDashCollection("posts", {
+		where: { byline: bylineKey },
+		orderBy: { date: "desc" },
+		limit: 100,
+	}),
+	getEmDashCollection("events", {
+		where: { byline: bylineKey },
+		orderBy: { start: "asc" },
+		limit: 100,
+	}),
+	getEmDashCollection("handbook", {
+		where: { byline: bylineKey },
+		orderBy: { order: "asc" },
+		limit: 100,
+	}),
+]);
+
+if (Astro.cache?.enabled) {
+	Astro.cache.set(postsResult.cacheHint);
+	Astro.cache.set(eventsResult.cacheHint);
+	Astro.cache.set(handbookResult.cacheHint);
+}
+
+const posts = postsResult.entries;
+const events = eventsResult.entries;
+const chapters = handbookResult.entries;
+
+const roles = new Set<string>();
+for (const entry of [...posts, ...events, ...chapters]) {
+	for (const credit of entry.data.bylines ?? []) {
+		if (credit.byline.slug === byline.slug && credit.roleLabel) roles.add(credit.roleLabel);
+	}
+}
+
+const { siteTitle } = resolveStarterSiteIdentity(await getSiteSettings());
+const seo = getSeoMeta(
+	{ data: { title: byline.displayName, excerpt: byline.bio ?? undefined } },
+	{
+		siteTitle,
+		siteUrl: Astro.url.origin,
+		path: Astro.url.pathname.replace(/\/$/, ""),
+		defaultTitle: byline.displayName,
+	},
+);
+
+const totalCredits = posts.length + events.length + chapters.length;
+---
+
+<Base title={seo.title} pageTitle={seo.ogTitle} description={seo.description} canonical={seo.canonical}>
+	<PageHeader eyebrow="Fieldwork / People" title={byline.displayName}>
+		<div class="mt-6 flex flex-wrap items-center gap-5">
+			<Avatar name={byline.displayName} size="lg" />
+			<div>
+				{roles.size > 0 ? (
+					<p class="font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+						{[...roles].join(" · ")}
+					</p>
+				) : null}
+				<p class="mt-1 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+					{totalCredits} {totalCredits === 1 ? "credit" : "credits"} across the site
+				</p>
+			</div>
+		</div>
+		{byline.bio ? (
+			<p class="mt-5 max-w-2xl text-base leading-relaxed text-muted-foreground">{byline.bio}</p>
+		) : null}
+		{byline.websiteUrl ? (
+			<a
+				href={byline.websiteUrl}
+				class="text-link mt-4 inline-block font-mono text-[11px] uppercase tracking-wider"
+				target="_blank"
+				rel="noopener noreferrer"
+			>
+				{byline.websiteUrl.replace(/^https?:\/\//, "")}
+			</a>
+		) : null}
+	</PageHeader>
+
+	<Section>
+		<div class="flex flex-wrap items-end justify-between gap-4">
+			<div>
+				<p class="heading-meta text-foreground-lighter">Journal</p>
+				<h2 class="heading-section mt-2">Written by {byline.displayName.split(" ")[0]}</h2>
+			</div>
+			<a href="/journal" class="text-link font-mono text-xs uppercase tracking-wider">All entries</a>
+		</div>
+
+		{
+			posts.length > 0 ? (
+				<div class="mt-8 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+					{posts.map((post) => (
+						<EntryCard
+							href={`/journal/${post.id}`}
+							title={post.data.title}
+							description={post.data.excerpt}
+							meta={`${formatDate(post.data.date)} · ${readingTime(post.data.content)} min`}
+							badge={post.data.terms?.category?.[0]?.label}
+							image={post.data.cover}
+							seed={post.id}
+						/>
+					))}
+				</div>
+			) : (
+				<EmptyState title="No journal entries yet" class="mt-8" />
+			)
+		}
+	</Section>
+
+	{
+		events.length > 0 ? (
+			<Section class="border-y border-border bg-surface-75">
+				<div class="flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="heading-meta text-foreground-lighter">Events</p>
+						<h2 class="heading-section mt-2">Hosted by {byline.displayName.split(" ")[0]}</h2>
+					</div>
+					<a href="/events" class="text-link font-mono text-xs uppercase tracking-wider">All events</a>
+				</div>
+				<div class="mt-8 grid gap-3">
+					{events.map((event) => (
+						<EventRow
+							href={`/events/${event.id}`}
+							title={event.data.title}
+							summary={event.data.summary}
+							start={event.data.start}
+							end={event.data.end}
+							startTime={event.data.start_time}
+							endTime={event.data.end_time}
+							allDay={event.data.all_day}
+							location={event.data.location}
+							format={event.data.format}
+						/>
+					))}
+				</div>
+			</Section>
+		) : null
+	}
+
+	{
+		chapters.length > 0 ? (
+			<Section>
+				<div class="flex flex-wrap items-end justify-between gap-4">
+					<div>
+						<p class="heading-meta text-foreground-lighter">Handbook</p>
+						<h2 class="heading-section mt-2">Chapters</h2>
+					</div>
+					<a href="/handbook" class="text-link font-mono text-xs uppercase tracking-wider">
+						All chapters
+					</a>
+				</div>
+				<ol class="mt-8 divide-y divide-border border-y border-border">
+					{chapters.map((chapter, index) => (
+						<li>
+							<a
+								href={`/handbook/${chapter.id}`}
+								class="group flex items-start gap-4 py-4 transition-colors hover:text-foreground"
+							>
+								<span class="mt-0.5 font-mono text-[11px] uppercase tracking-wider text-foreground-lighter">
+									{String(index + 1).padStart(2, "0")}
+								</span>
+								<span class="min-w-0 flex-1">
+									<span class="block text-sm font-medium group-hover:underline">
+										{chapter.data.title}
+									</span>
+									{chapter.data.summary ? (
+										<span class="mt-1 block line-clamp-1 text-sm text-muted-foreground">
+											{chapter.data.summary}
+										</span>
+									) : null}
+								</span>
+								<Badge>{chapter.data.section}</Badge>
+							</a>
+						</li>
+					))}
+				</ol>
+			</Section>
+		) : null
+	}
+
+	<Section class="border-t border-border">
+		<div class="flex flex-wrap items-center justify-between gap-4">
+			<p class="text-sm text-muted-foreground">
+				Bylines are managed in EmDash. Every credit on this page points at the same author
+				record.
+			</p>
+			<a href="/authors" class="text-link font-mono text-xs uppercase tracking-wider">
+				All contributors
+			</a>
+		</div>
+	</Section>
+</Base>

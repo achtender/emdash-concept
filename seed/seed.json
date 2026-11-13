@@ -2,67 +2,283 @@
 	"$schema": "https://emdashcms.com/seed.schema.json",
 	"version": "1",
 	"meta": {
-		"name": "Starter",
-		"description": "A minimal EmDash starter with posts and pages",
-		"author": "EmDash"
+		"name": "Fieldwork",
+		"description": "An editorial demonstration site for EmDash: journal, handbook, calendar, bylines, blocks, and forms.",
+		"author": "Fieldwork Studio"
 	},
 	"settings": {
-		"title": "My Site",
-		"tagline": "Built with EmDash"
+		"title": "Fieldwork",
+		"tagline": "Notes on craft, place, and the tools we keep.",
+		"timezone": "Europe/London",
+		"dateFormat": "MMM d, yyyy"
 	},
+	"blockTypes": [
+		{
+			"slug": "hero",
+			"label": "Hero",
+			"description": "A page-opening statement with optional actions.",
+			"category": "layout",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "eyebrow", "label": "Eyebrow", "type": "string" },
+						{ "slug": "heading", "label": "Heading", "type": "string", "required": true },
+						{ "slug": "body", "label": "Body", "type": "text" },
+						{ "slug": "action_label", "label": "Primary action label", "type": "string" },
+						{ "slug": "action_href", "label": "Primary action link", "type": "string" },
+						{ "slug": "secondary_label", "label": "Secondary action label", "type": "string" },
+						{ "slug": "secondary_href", "label": "Secondary action link", "type": "string" }
+					]
+				}
+			]
+		},
+		{
+			"slug": "feature_grid",
+			"label": "Feature grid",
+			"description": "A set of short editorial features.",
+			"category": "layout",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "label", "label": "Label", "type": "string" },
+						{ "slug": "heading", "label": "Heading", "type": "string" },
+						{ "slug": "intro", "label": "Introduction", "type": "text" },
+						{
+							"slug": "items",
+							"label": "Items",
+							"type": "repeater",
+							"validation": {
+								"subFields": [
+									{ "slug": "title", "label": "Title", "type": "string", "required": true },
+									{ "slug": "description", "label": "Description", "type": "text" },
+									{ "slug": "meta", "label": "Meta", "type": "string" }
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "callout",
+			"label": "Callout",
+			"description": "A short aside with a tone.",
+			"category": "content",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "tone", "label": "Tone", "type": "string", "defaultValue": "note" },
+						{ "slug": "title", "label": "Title", "type": "string" },
+						{ "slug": "body", "label": "Body", "type": "text", "required": true }
+					]
+				}
+			]
+		},
+		{
+			"slug": "stats",
+			"label": "Stats",
+			"description": "A row of headline numbers.",
+			"category": "content",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "heading", "label": "Heading", "type": "string" },
+						{
+							"slug": "items",
+							"label": "Items",
+							"type": "repeater",
+							"validation": {
+								"subFields": [
+									{ "slug": "value", "label": "Value", "type": "string", "required": true },
+									{ "slug": "label", "label": "Label", "type": "string", "required": true }
+								]
+							}
+						}
+					]
+				}
+			]
+		},
+		{
+			"slug": "cta",
+			"label": "Call to action",
+			"description": "A closing invitation.",
+			"category": "content",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "heading", "label": "Heading", "type": "string", "required": true },
+						{ "slug": "body", "label": "Body", "type": "text" },
+						{ "slug": "action_label", "label": "Action label", "type": "string" },
+						{ "slug": "action_href", "label": "Action link", "type": "string" }
+					]
+				}
+			]
+		},
+		{
+			"slug": "quote",
+			"label": "Quote",
+			"description": "A pulled quotation.",
+			"category": "content",
+			"currentVersion": 1,
+			"versions": [
+				{
+					"version": 1,
+					"fields": [
+						{ "slug": "quote", "label": "Quote", "type": "text", "required": true },
+						{ "slug": "attribution", "label": "Attribution", "type": "string" },
+						{ "slug": "role", "label": "Role", "type": "string" }
+					]
+				}
+			]
+		}
+	],
 	"collections": [
 		{
 			"slug": "posts",
-			"label": "Posts",
-			"labelSingular": "Post",
-			"urlPattern": "/posts/{slug}",
+			"label": "Journal",
+			"labelSingular": "Journal entry",
+			"description": "Long-form notes from the studio.",
+			"icon": "notebook",
+			"urlPattern": "/journal/{slug}",
 			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+			"commentsEnabled": true,
+			"titleField": "title",
+			"dateField": "date",
+			"admin": { "listColumns": ["date", "featured"] },
 			"fields": [
+				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+				{ "slug": "excerpt", "label": "Excerpt", "type": "text", "searchable": true },
+				{ "slug": "content", "label": "Content", "type": "portableText", "searchable": true },
+				{ "slug": "cover", "label": "Cover image", "type": "image" },
+				{ "slug": "date", "label": "Published date", "type": "datetime", "required": true },
+				{ "slug": "featured", "label": "Featured", "type": "boolean", "defaultValue": false },
 				{
-					"slug": "title",
-					"label": "Title",
-					"type": "string",
-					"required": true,
-					"searchable": true
-				},
-				{
-					"slug": "featured_image",
-					"label": "Featured Image",
-					"type": "image"
-				},
-				{
-					"slug": "content",
-					"label": "Content",
-					"type": "portableText",
-					"searchable": true
-				},
-				{
-					"slug": "excerpt",
-					"label": "Excerpt",
-					"type": "text"
+					"slug": "related",
+					"label": "Related entries",
+					"type": "reference",
+					"validation": { "targetCollection": "posts", "multiple": true }
 				}
+			]
+		},
+		{
+			"slug": "events",
+			"label": "Events",
+			"labelSingular": "Event",
+			"description": "Readings, workshops, and studio hours.",
+			"icon": "calendar",
+			"urlPattern": "/events/{slug}",
+			"supports": ["drafts", "revisions", "preview", "scheduling", "search", "seo"],
+			"titleField": "title",
+			"dateField": "start",
+			"admin": { "listColumns": ["start", "format"] },
+			"fields": [
+				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+				{ "slug": "summary", "label": "Summary", "type": "text", "searchable": true },
+				{ "slug": "content", "label": "Details", "type": "portableText", "searchable": true },
+				{ "slug": "cover", "label": "Cover image", "type": "image" },
+				{ "slug": "start", "label": "Starts", "type": "datetime", "required": true },
+				{ "slug": "end", "label": "Ends", "type": "datetime" },
+				{ "slug": "start_time", "label": "Start time", "type": "string" },
+				{ "slug": "end_time", "label": "End time", "type": "string" },
+				{ "slug": "all_day", "label": "All day", "type": "boolean", "defaultValue": false },
+				{ "slug": "location", "label": "Location", "type": "string" },
+				{
+					"slug": "format",
+					"label": "Format",
+					"type": "select",
+					"defaultValue": "In person",
+					"validation": { "options": ["In person", "Online", "Hybrid"] }
+				},
+				{ "slug": "registration_url", "label": "Registration link", "type": "url" },
+				{ "slug": "capacity", "label": "Capacity", "type": "integer" },
+				{
+					"slug": "audience",
+					"label": "Audience",
+					"type": "multiSelect",
+					"validation": { "options": ["Writers", "Designers", "Developers", "Editors", "Everyone"] }
+				},
+				{ "slug": "takeaways", "label": "What you will leave with", "type": "json" }
+			]
+		},
+		{
+			"slug": "handbook",
+			"label": "Handbook",
+			"labelSingular": "Handbook chapter",
+			"description": "How the studio works, written down.",
+			"icon": "book-open",
+			"urlPattern": "/handbook/{slug}",
+			"supports": ["drafts", "revisions", "preview", "search", "seo"],
+			"titleField": "title",
+			"dateField": "updated",
+			"admin": { "listColumns": ["section", "order"] },
+			"fields": [
+				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+				{ "slug": "summary", "label": "Summary", "type": "text", "searchable": true },
+				{ "slug": "content", "label": "Content", "type": "portableText", "searchable": true },
+				{
+					"slug": "section",
+					"label": "Section",
+					"type": "select",
+					"required": true,
+					"validation": { "options": ["Foundations", "Craft", "Process", "Standards"] }
+				},
+				{ "slug": "order", "label": "Order", "type": "integer", "defaultValue": 1 },
+				{ "slug": "updated", "label": "Last updated", "type": "datetime" },
+				{ "slug": "reading_time", "label": "Reading time (minutes)", "type": "integer" },
+				{
+					"slug": "audience",
+					"label": "For",
+					"type": "multiSelect",
+					"validation": { "options": ["Writers", "Designers", "Developers", "Editors", "Everyone"] }
+				},
+				{
+					"slug": "resources",
+					"label": "Resources",
+					"type": "repeater",
+					"validation": {
+						"subFields": [
+							{ "slug": "label", "label": "Label", "type": "string", "required": true },
+							{ "slug": "url", "label": "URL", "type": "url" },
+							{ "slug": "kind", "label": "Kind", "type": "select", "options": ["Template", "Reading", "Tool"] }
+						]
+					}
+				},
+				{ "slug": "attachment", "label": "Download", "type": "file" }
 			]
 		},
 		{
 			"slug": "pages",
 			"label": "Pages",
 			"labelSingular": "Page",
+			"description": "Standalone pages built from blocks or rich text.",
+			"icon": "file-text",
 			"urlPattern": "/{slug}",
 			"supports": ["drafts", "revisions", "preview", "search", "seo"],
+			"titleField": "title",
 			"fields": [
+				{ "slug": "title", "label": "Title", "type": "string", "required": true, "searchable": true },
+				{ "slug": "excerpt", "label": "Excerpt", "type": "text", "searchable": true },
+				{ "slug": "content", "label": "Content", "type": "portableText", "searchable": true },
 				{
-					"slug": "title",
-					"label": "Title",
-					"type": "string",
-					"required": true,
-					"searchable": true
+					"slug": "layout",
+					"label": "Layout",
+					"type": "blocks",
+					"validation": {
+						"allowedTypes": ["hero", "feature_grid", "callout", "stats", "cta", "quote"],
+						"maxItems": 20
+					}
 				},
-				{
-					"slug": "content",
-					"label": "Content",
-					"type": "portableText",
-					"searchable": true
-				}
+				{ "slug": "cover", "label": "Cover image", "type": "image" }
 			]
 		}
 	],
@@ -74,14 +290,11 @@
 			"hierarchical": true,
 			"collections": ["posts"],
 			"terms": [
-				{
-					"slug": "general",
-					"label": "General"
-				},
-				{
-					"slug": "updates",
-					"label": "Updates"
-				}
+				{ "slug": "craft", "label": "Craft", "description": "How the work is made." },
+				{ "slug": "editing", "label": "Editing", "parent": "craft" },
+				{ "slug": "place", "label": "Place", "description": "Notes from a particular somewhere." },
+				{ "slug": "tools", "label": "Tools", "description": "The instruments we keep close." },
+				{ "slug": "studio", "label": "Studio", "description": "How the studio runs." }
 			]
 		},
 		{
@@ -91,36 +304,52 @@
 			"hierarchical": false,
 			"collections": ["posts"],
 			"terms": [
-				{
-					"slug": "starter",
-					"label": "Starter"
-				},
-				{
-					"slug": "example",
-					"label": "Example"
-				}
+				{ "slug": "slow-software", "label": "Slow software" },
+				{ "slug": "design-systems", "label": "Design systems" },
+				{ "slug": "cms", "label": "CMS" },
+				{ "slug": "workflow", "label": "Workflow" },
+				{ "slug": "typography", "label": "Typography" },
+				{ "slug": "field-notes", "label": "Field notes" }
 			]
 		}
 	],
 	"menus": [
 		{
 			"name": "primary",
-			"label": "Primary Navigation",
+			"label": "Primary navigation",
+			"items": [
+				{ "type": "custom", "label": "Journal", "url": "/journal" },
+				{ "type": "custom", "label": "Calendar", "url": "/calendar" },
+				{ "type": "custom", "label": "Handbook", "url": "/handbook" },
+				{ "type": "custom", "label": "Authors", "url": "/authors" },
+				{ "type": "custom", "label": "About", "url": "/about" }
+			]
+		},
+		{
+			"name": "footer",
+			"label": "Footer",
 			"items": [
 				{
 					"type": "custom",
-					"label": "Home",
-					"url": "/"
+					"label": "Read",
+					"url": "/journal",
+					"children": [
+						{ "type": "custom", "label": "Journal", "url": "/journal" },
+						{ "type": "custom", "label": "Calendar", "url": "/calendar" },
+						{ "type": "custom", "label": "Handbook", "url": "/handbook" },
+						{ "type": "custom", "label": "RSS feed", "url": "/rss.xml" }
+					]
 				},
 				{
 					"type": "custom",
-					"label": "Posts",
-					"url": "/posts"
-				},
-				{
-					"type": "custom",
-					"label": "About",
-					"url": "/about"
+					"label": "Studio",
+					"url": "/about",
+					"children": [
+						{ "type": "custom", "label": "About", "url": "/about" },
+						{ "type": "custom", "label": "Authors", "url": "/authors" },
+						{ "type": "custom", "label": "Contact", "url": "/contact" },
+						{ "type": "custom", "label": "Search", "url": "/search" }
+					]
 				}
 			]
 		}
@@ -129,37 +358,197 @@
 		{
 			"name": "sidebar",
 			"label": "Sidebar",
-			"description": "Sidebar widget area",
+			"description": "Kept for the admin demo. The Fieldwork frontend does not render this area.",
 			"widgets": [
-				{
-					"type": "component",
-					"componentId": "core:search",
-					"title": "Search"
-				},
-				{
-					"type": "component",
-					"componentId": "core:categories",
-					"title": "Categories"
-				},
+				{ "type": "component", "componentId": "core:search", "title": "Search" },
+				{ "type": "component", "componentId": "core:categories", "title": "Categories" },
 				{
 					"type": "component",
 					"componentId": "core:recent-posts",
 					"title": "Recent Posts",
-					"props": {
-						"count": 5
-					}
+					"props": { "count": 5 }
 				}
 			]
+		}
+	],
+	"sections": [
+		{
+			"slug": "newsletter-signup",
+			"title": "Newsletter signup",
+			"description": "A short invitation to receive new notes by email.",
+			"keywords": ["newsletter", "subscribe", "email", "cta"],
+			"source": "theme",
+			"content": [
+				{
+					"_type": "block",
+					"style": "h3",
+					"children": [{ "_type": "span", "text": "A note every other Thursday" }]
+				},
+				{
+					"_type": "block",
+					"style": "normal",
+					"children": [
+						{
+							"_type": "span",
+							"text": "One considered piece, one handbook update, and one thing worth keeping. No noise, no growth hacks."
+						}
+					]
+				},
+				{
+					"_type": "block",
+					"style": "normal",
+					"children": [
+						{ "_type": "span", "text": "Write to " },
+						{
+							"_type": "span",
+							"text": "letters@fieldwork.studio",
+							"marks": ["section-link"]
+						},
+						{ "_type": "span", "text": " and we will add you to the list." }
+					],
+					"markDefs": [
+						{ "_key": "section-link", "_type": "link", "href": "mailto:letters@fieldwork.studio" }
+					]
+				}
+			]
+		},
+		{
+			"slug": "editorial-note",
+			"title": "Editorial note",
+			"description": "A reusable note about how the journal is edited.",
+			"keywords": ["editorial", "process", "note"],
+			"source": "theme",
+			"content": [
+				{
+					"_type": "block",
+					"style": "blockquote",
+					"children": [
+						{
+							"_type": "span",
+							"text": "Every piece is read aloud once before it is published. If a sentence cannot survive being spoken, it is not finished."
+						}
+					]
+				}
+			]
+		}
+	],
+	"bylines": [
+		{
+			"id": "byline-mara",
+			"slug": "mara-voss",
+			"displayName": "Mara Voss",
+			"bio": "Mara edits the journal and keeps the studio's style guide honest. She has spent fifteen years making software documentation feel less like a manual and more like a place.",
+			"websiteUrl": "https://fieldwork.studio/mara"
+		},
+		{
+			"id": "byline-theo",
+			"slug": "theo-renner",
+			"displayName": "Theo Renner",
+			"bio": "Theo builds the tools the studio writes with. He is interested in small systems, long-lived files, and interfaces that explain themselves.",
+			"websiteUrl": "https://fieldwork.studio/theo"
+		},
+		{
+			"id": "byline-ines",
+			"slug": "ines-almeida",
+			"displayName": "Inês Almeida",
+			"bio": "Inês is a designer and letterpress printer. She writes about place, typography, and the relationship between a map and the ground it describes.",
+			"websiteUrl": "https://fieldwork.studio/ines"
 		}
 	],
 	"content": {
 		"pages": [
 			{
-				"id": "about",
+				"id": "page-about",
 				"slug": "about",
 				"status": "published",
 				"data": {
-					"title": "About",
+					"title": "About Fieldwork",
+					"excerpt": "A small editorial studio interested in craft, place, and the tools we keep.",
+					"layout": [
+						{
+							"_type": "hero",
+							"_version": 1,
+							"_key": "about-hero",
+							"eyebrow": "Fieldwork / About",
+							"heading": "A studio for the second draft.",
+							"body": "Fieldwork is a working journal about calm software, careful design, and the small editorial teams who ship it. We write slowly, edit in public, and keep the tools that earn their place.",
+							"action_label": "Read the journal",
+							"action_href": "/journal",
+							"secondary_label": "Browse the handbook",
+							"secondary_href": "/handbook"
+						},
+						{
+							"_type": "stats",
+							"_version": 1,
+							"_key": "about-stats",
+							"heading": "The studio in numbers",
+							"items": [
+								{ "value": "03", "label": "People" },
+								{ "value": "12", "label": "Years keeping notes" },
+								{ "value": "41", "label": "Handbook chapters" },
+								{ "value": "01", "label": "Rule: read it aloud" }
+							]
+						},
+						{
+							"_type": "feature_grid",
+							"_version": 1,
+							"_key": "about-features",
+							"label": "What we do",
+							"heading": "Three kinds of attention",
+							"intro": "We organise the work around the questions we keep returning to, not the services we sell.",
+							"items": [
+								{
+									"title": "Editorial",
+									"description": "Long-form writing, structural editing, and the unglamorous work of making a sentence arrive in the right order.",
+									"meta": "Journal / Handbook"
+								},
+								{
+									"title": "Design",
+									"description": "Small design systems with clear rules, generous spacing, and components that survive being used by someone else.",
+									"meta": "Systems / Type"
+								},
+								{
+									"title": "Tools",
+									"description": "Content models, publishing workflows, and the quiet software that lets a small team keep a consistent voice.",
+									"meta": "CMS / Process"
+								}
+							]
+						},
+						{
+							"_type": "quote",
+							"_version": 1,
+							"_key": "about-quote",
+							"quote": "The best editorial systems are not the ones that make publishing faster. They are the ones that make publishing more deliberate.",
+							"attribution": "Mara Voss",
+							"role": "Editor"
+						},
+						{
+							"_type": "callout",
+							"_version": 1,
+							"_key": "about-callout",
+							"tone": "note",
+							"title": "How this site is made",
+							"body": "Every page is edited in EmDash: the journal, the handbook, the calendar, the bylines, and the blocks on this page. The frontend is Astro with a shared design system."
+						},
+						{
+							"_type": "cta",
+							"_version": 1,
+							"_key": "about-cta",
+							"heading": "Come to the next open studio",
+							"body": "We keep the last Thursday of most months free for questions, work-in-progress, and coffee.",
+							"action_label": "See the calendar",
+							"action_href": "/calendar"
+						}
+					]
+				}
+			},
+			{
+				"id": "page-contact",
+				"slug": "contact",
+				"status": "published",
+				"data": {
+					"title": "Contact",
+					"excerpt": "Write to the studio about editorial work, design systems, or a project that needs a second reader.",
 					"content": [
 						{
 							"_type": "block",
@@ -167,24 +556,49 @@
 							"children": [
 								{
 									"_type": "span",
-									"text": "This is the about page. Edit it in the admin panel or replace this template with your own design.",
-									"_key": "k1"
+									"text": "We read everything that arrives, but we answer slowly. A useful note tells us what you are making, who it is for, and what kind of help you need."
 								}
 							],
-							"_key": "k0"
+							"_key": "contact-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What to expect" }],
+							"_key": "contact-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Most replies go out within a week. If your note is about a workshop or a speaking invitation, include the date and the audience, and we will tell you honestly whether it fits."
+								}
+							],
+							"_key": "contact-p2"
 						}
 					]
 				}
 			}
 		],
-		"posts": [
+		"handbook": [
 			{
-				"id": "post-1",
-				"slug": "welcome",
+				"id": "handbook-getting-started",
+				"slug": "getting-started",
 				"status": "published",
 				"data": {
-					"title": "Welcome",
-					"excerpt": "Your first post. Replace this with your own content.",
+					"title": "Getting started",
+					"summary": "How the Fieldwork handbook is organised, and how to add a chapter without inventing a new process.",
+					"section": "Foundations",
+					"order": 1,
+					"updated": "2026-09-01T09:00:00.000Z",
+					"reading_time": 4,
+					"audience": ["Everyone"],
+					"resources": [
+						{ "label": "Chapter template", "url": "/handbook/writing-style", "kind": "Template" },
+						{ "label": "The style guide", "url": "/handbook/writing-style", "kind": "Reading" }
+					],
 					"content": [
 						{
 							"_type": "block",
@@ -192,23 +606,16 @@
 							"children": [
 								{
 									"_type": "span",
-									"text": "This is a starter post. The templates in this project show the basic patterns for querying and rendering EmDash content. Replace them with your own design.",
-									"_key": "k1"
+									"text": "The handbook is the internal counterpart to the journal. It holds the practices we want to repeat, not the announcements we want people to read."
 								}
 							],
-							"_key": "k0"
+							"_key": "hb1-p1"
 						},
 						{
 							"_type": "block",
 							"style": "h2",
-							"children": [
-								{
-									"_type": "span",
-									"text": "What to do next",
-									"_key": "k3"
-								}
-							],
-							"_key": "k2"
+							"children": [{ "_type": "span", "text": "How a chapter is structured" }],
+							"_key": "hb1-h2"
 						},
 						{
 							"_type": "block",
@@ -216,18 +623,1180 @@
 							"children": [
 								{
 									"_type": "span",
-									"text": "Open the admin panel to add content, or edit the Astro pages in src/pages to change how content is displayed.",
-									"_key": "k5"
+									"text": "Every chapter uses the same contract: a title, a one-sentence summary, a section, an order, and a last-updated date. Everything else is written in the body."
 								}
 							],
-							"_key": "k4"
+							"_key": "hb1-p2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{ "_type": "span", "text": "The " },
+								{ "_type": "span", "text": "section", "marks": ["strong"] },
+								{
+									"_type": "span",
+									"text": " groups related chapters in the index. The order controls their position inside that group."
+								}
+							],
+							"_key": "hb1-p3"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "If you are unsure where a chapter belongs, start with the section that already contains the closest neighbour. A new section is a bigger decision than a new chapter."
+								}
+							],
+							"_key": "hb1-quote"
 						}
 					]
 				},
-				"taxonomies": {
-					"category": ["general"],
-					"tag": ["starter", "example"]
-				}
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Editor" }]
+			},
+			{
+				"id": "handbook-writing-style",
+				"slug": "writing-style",
+				"status": "published",
+				"data": {
+					"title": "Writing style",
+					"summary": "The small rules that keep our voice consistent without making every piece sound the same.",
+					"section": "Standards",
+					"order": 1,
+					"updated": "2026-09-12T09:00:00.000Z",
+					"reading_time": 6,
+					"audience": ["Writers", "Editors"],
+					"resources": [
+						{ "label": "Plain language guide", "url": "https://www.plainlanguage.gov/guidelines/", "kind": "Reading" }
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We write to be understood on the first read and remembered on the second. That means short sentences, concrete nouns, and a willingness to cut the sentence that only exists to introduce the next one."
+								}
+							],
+							"_key": "hb2-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Rules we actually use" }],
+							"_key": "hb2-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Prefer the concrete verb to the abstract noun." }],
+							"_key": "hb2-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Read the piece aloud before it goes to review." }],
+							"_key": "hb2-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "If a paragraph needs a diagram to make sense, it needs another draft first." }
+							],
+							"_key": "hb2-li3"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What we avoid" }],
+							"_key": "hb2-h2b"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We avoid urgency language, invented categories, and the assumption that the reader has been following along. Every piece should stand on its own."
+								}
+							],
+							"_key": "hb2-p2"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Editor" }]
+			},
+			{
+				"id": "handbook-editorial-workflow",
+				"slug": "editorial-workflow",
+				"status": "published",
+				"data": {
+					"title": "Editorial workflow",
+					"summary": "From pitch to publish: the five states every Fieldwork piece passes through.",
+					"section": "Process",
+					"order": 1,
+					"updated": "2026-10-04T09:00:00.000Z",
+					"reading_time": 5,
+					"audience": ["Writers", "Editors"],
+					"resources": [
+						{ "label": "Pitch form", "url": "/contact", "kind": "Template" },
+						{ "label": "Publishing checklist", "url": "/handbook/publishing-checklist", "kind": "Reading" }
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A piece moves through five states. The names matter less than the fact that everyone can see which state a draft is in."
+								}
+							],
+							"_key": "hb3-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "The five states" }],
+							"_key": "hb3-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Pitch: one paragraph and a reason to write it now." }],
+							"_key": "hb3-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Draft: written for the editor, not the audience." }],
+							"_key": "hb3-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Review: read aloud, marked up, and returned with questions." }],
+							"_key": "hb3-li3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Proof: a final pass for links, names, and dates." }],
+							"_key": "hb3-li4"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Publish: scheduled, announced, and added to the next reading list." }],
+							"_key": "hb3-li5"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A piece can move backwards. A proof that turns up a structural problem goes back to review, and the calendar moves with it."
+								}
+							],
+							"_key": "hb3-p2"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-theo", "roleLabel": "Tools" }]
+			},
+			{
+				"id": "handbook-publishing-checklist",
+				"slug": "publishing-checklist",
+				"status": "published",
+				"data": {
+					"title": "Publishing checklist",
+					"summary": "The last twenty minutes before a piece goes live.",
+					"section": "Process",
+					"order": 2,
+					"updated": "2026-10-18T09:00:00.000Z",
+					"reading_time": 3,
+					"audience": ["Editors"],
+					"resources": [],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The checklist is deliberately short. If it takes longer than twenty minutes, something earlier in the process was skipped."
+								}
+							],
+							"_key": "hb4-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Before you press publish" }],
+							"_key": "hb4-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Read the title and excerpt as a pair, not separately." }],
+							"_key": "hb4-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Check every link, including the ones you added yesterday." }],
+							"_key": "hb4-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Confirm the byline, category, and tags." }],
+							"_key": "hb4-li3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Look at the page on a narrow screen." }],
+							"_key": "hb4-li4"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Schedule the newsletter note for the same morning." }],
+							"_key": "hb4-li5"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Editor" }]
+			},
+			{
+				"id": "handbook-field-notes",
+				"slug": "field-notes",
+				"status": "published",
+				"data": {
+					"title": "Keeping field notes",
+					"summary": "How we collect observations so that a place, a conversation, or a detail can survive until the first draft.",
+					"section": "Craft",
+					"order": 1,
+					"updated": "2026-11-02T09:00:00.000Z",
+					"reading_time": 4,
+					"audience": ["Writers", "Designers"],
+					"resources": [
+						{ "label": "Notebook index", "url": "/journal/notes-on-printing-a-place", "kind": "Reading" }
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A field note is not a draft. It is a record of attention: what was there, what was said, and what you almost missed."
+								}
+							],
+							"_key": "hb5-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What to write down" }],
+							"_key": "hb5-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Write the exact words people use, the names of things, and the small physical details that make a scene legible later. Leave the interpretation for the draft."
+								}
+							],
+							"_key": "hb5-p2"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The notebook is not where you decide what a thing means. It is where you keep enough of the thing that you can decide later."
+								}
+							],
+							"_key": "hb5-quote"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-ines", "roleLabel": "Design" }]
+			}
+		],
+		"events": [
+			{
+				"id": "event-open-studio-november",
+				"slug": "open-studio-november",
+				"status": "published",
+				"data": {
+					"title": "Open studio: November",
+					"summary": "An evening of work-in-progress, questions, and coffee at the Bindery.",
+					"start": "2026-11-19T12:00:00.000Z",
+					"end": "2026-11-19T12:00:00.000Z",
+					"start_time": "18:00",
+					"end_time": "20:30",
+					"all_day": false,
+					"location": "The Bindery, 14 Ash Lane",
+					"format": "In person",
+					"registration_url": "https://fieldwork.studio/events/open-studio-november",
+					"capacity": 40,
+					"audience": ["Everyone"],
+					"takeaways": [
+						"A look at two pieces still in review",
+						"One useful question about your own work",
+						"Coffee, and a chair by the window"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The studio opens its doors on the third Thursday of most months. Bring a page you are stuck on, or come and listen. There is no programme and no pitch."
+								}
+							],
+							"_key": "ev1-p1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We keep the group small so that the conversation can stay specific. If the list is full, write to us and we will add you to the next one."
+								}
+							],
+							"_key": "ev1-p2"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Host" }]
+			},
+			{
+				"id": "event-editing-with-the-grain",
+				"slug": "editing-with-the-grain",
+				"status": "published",
+				"data": {
+					"title": "Editing with the grain",
+					"summary": "A practical online session on structural editing without flattening a writer's voice.",
+					"start": "2026-11-24T12:00:00.000Z",
+					"end": "2026-11-24T12:00:00.000Z",
+					"start_time": "18:30",
+					"end_time": "20:00",
+					"all_day": false,
+					"location": "Online",
+					"format": "Online",
+					"registration_url": "https://fieldwork.studio/events/editing-with-the-grain",
+					"capacity": 100,
+					"audience": ["Writers", "Editors"],
+					"takeaways": [
+						"A repeatable pass for structural edits",
+						"Language for giving notes that land",
+						"A short marked-up example"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Most editing advice is about correction. This session is about direction: how to help a piece become more itself without sanding off the parts that make it worth reading."
+								}
+							],
+							"_key": "ev2-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What we will do" }],
+							"_key": "ev2-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We will work through one short essay together, first as readers and then as editors, and leave with a shared vocabulary for the next round."
+								}
+							],
+							"_key": "ev2-p2"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Host" }]
+			},
+			{
+				"id": "event-type-walk",
+				"slug": "type-walk",
+				"status": "published",
+				"data": {
+					"title": "Type walk: the old quarter",
+					"summary": "A two-day walking and printing workshop through the lettering of the old quarter.",
+					"start": "2026-12-05T12:00:00.000Z",
+					"end": "2026-12-06T12:00:00.000Z",
+					"start_time": "10:00",
+					"end_time": "16:00",
+					"all_day": true,
+					"location": "Meet at the market steps",
+					"format": "In person",
+					"registration_url": "https://fieldwork.studio/events/type-walk",
+					"capacity": 16,
+					"audience": ["Designers", "Writers"],
+					"takeaways": [
+						"A set of rubbings and photographs",
+						"A short printed keepsake",
+						"A different way of reading a street"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Two days, one neighbourhood, and a lot of looking up. We will trace the lettering that survives on shopfronts, stone, and signage, then set a small keepsake in the studio."
+								}
+							],
+							"_key": "ev3-p1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "No printing experience is needed. Wear shoes that can handle cobbles and bring a notebook that can take a rubbing."
+								}
+							],
+							"_key": "ev3-p2"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-ines", "roleLabel": "Guide" }]
+			},
+			{
+				"id": "event-winter-reading",
+				"slug": "winter-reading",
+				"status": "published",
+				"data": {
+					"title": "Winter reading night",
+					"summary": "Three short readings, one long table, and the last journal issue of the year.",
+					"start": "2026-12-12T12:00:00.000Z",
+					"end": "2026-12-12T12:00:00.000Z",
+					"start_time": "19:00",
+					"end_time": "21:00",
+					"all_day": false,
+					"location": "The Bindery, 14 Ash Lane",
+					"format": "In person",
+					"registration_url": "https://fieldwork.studio/events/winter-reading",
+					"capacity": 60,
+					"audience": ["Everyone"],
+					"takeaways": [
+						"Three readings from the winter issue",
+						"A printed copy to take home",
+						"A very good excuse to stay out"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We close the year the way we open it: with people in a room, reading to each other. The winter issue will be available at the door."
+								}
+							],
+							"_key": "ev4-p1"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-theo", "roleLabel": "Host" }]
+			},
+			{
+				"id": "event-cms-clinic",
+				"slug": "cms-clinic-small-teams",
+				"status": "published",
+				"data": {
+					"title": "CMS clinic: small teams",
+					"summary": "An open online hour for people choosing or untangling a content management system.",
+					"start": "2026-10-29T12:00:00.000Z",
+					"end": "2026-10-29T12:00:00.000Z",
+					"start_time": "17:00",
+					"end_time": "18:00",
+					"all_day": false,
+					"location": "Online",
+					"format": "Online",
+					"registration_url": "https://fieldwork.studio/events/cms-clinic",
+					"capacity": 50,
+					"audience": ["Developers", "Editors"],
+					"takeaways": [
+						"A short content-model review",
+						"Honest advice about migration",
+						"Notes you can share with your team"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Bring a schema, a spreadsheet, or a complaint. We will spend the hour on the specific questions that come up when a small team tries to keep a content model honest."
+								}
+							],
+							"_key": "ev5-p1"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-theo", "roleLabel": "Host" }]
+			},
+			{
+				"id": "event-field-notebook-workshop",
+				"slug": "field-notebook-workshop",
+				"status": "published",
+				"data": {
+					"title": "Field notebook workshop",
+					"summary": "A one-day workshop on collecting observations that survive into a first draft.",
+					"start": "2027-01-16T12:00:00.000Z",
+					"end": "2027-01-16T12:00:00.000Z",
+					"start_time": "10:00",
+					"end_time": "15:00",
+					"all_day": false,
+					"location": "The Bindery, 14 Ash Lane",
+					"format": "Hybrid",
+					"registration_url": "https://fieldwork.studio/events/field-notebook-workshop",
+					"capacity": 24,
+					"audience": ["Writers", "Designers"],
+					"takeaways": [
+						"A notebook practice you can keep",
+						"Two short written sketches",
+						"A reading list"
+					],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We will spend the morning outside and the afternoon at the table, turning raw notes into two short sketches. The workshop runs in person and online, with the same exercises."
+								}
+							],
+							"_key": "ev6-p1"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-ines", "roleLabel": "Guide" }]
+			}
+		],
+		"posts": [
+			{
+				"id": "post-manifesto",
+				"slug": "fieldwork-manifesto",
+				"status": "published",
+				"data": {
+					"title": "A manifesto for fieldwork",
+					"excerpt": "Why we write from a place instead of a platform, and what a small editorial studio can still promise.",
+					"date": "2026-09-14T09:00:00.000Z",
+					"featured": true,
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Fieldwork began as a shared notebook. Three people, a table by a window, and a rule that anything worth publishing was worth reading aloud first."
+								}
+							],
+							"_key": "p1-p1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The notebook became a journal, the journal became a practice, and the practice is still the same: pay attention, write it down, and edit until the reader can see what you saw."
+								}
+							],
+							"_key": "p1-p2"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What we mean by fieldwork" }],
+							"_key": "p1-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Fieldwork is the part of the work that happens before the work: the walk, the interview, the half-hour spent watching someone use the thing you built. It is not research in the formal sense. It is attention with a notebook."
+								}
+							],
+							"_key": "p1-p3"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The opposite of a platform is not a smaller platform. It is a place with a door and a person who answers it."
+								}
+							],
+							"_key": "p1-quote"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "A small set of commitments" }],
+							"_key": "p1-h2b"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [{ "_type": "span", "text": "Publish less, and read it more than once." }],
+							"_key": "p1-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Keep the tools legible enough that the team can maintain them." }
+							],
+							"_key": "p1-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Write the handbook before the process drifts." }
+							],
+							"_key": "p1-li3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{ "_type": "span", "text": "The longer version of these commitments lives in the " },
+								{ "_type": "span", "text": "handbook", "marks": ["link-handbook"] },
+								{ "_type": "span", "text": ". It is the internal counterpart to this journal, and the place we revise first." }
+							],
+							"_key": "p1-p4",
+							"markDefs": [{ "_key": "link-handbook", "_type": "link", "href": "/handbook" }]
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Editor" }],
+				"taxonomies": { "category": ["craft"], "tag": ["field-notes", "slow-software"] }
+			},
+			{
+				"id": "post-slow",
+				"slug": "the-case-for-slow-software",
+				"status": "published",
+				"data": {
+					"title": "The case for slow software",
+					"excerpt": "Fast software optimises the moment. Slow software respects the afternoon. A note on building for the second read.",
+					"date": "2026-10-02T09:00:00.000Z",
+					"featured": true,
+					"related": ["$ref:post-manifesto"],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "There is a kind of software that treats every second of the user's attention as a resource to be captured. It is very good at what it does. It is also exhausting to live inside."
+								}
+							],
+							"_key": "p2-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "The cost of always-on" }],
+							"_key": "p2-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "When every surface is optimised for the next click, the user never gets to finish a thought. The interface is not slow because it is badly built. It is slow because it keeps interrupting."
+								}
+							],
+							"_key": "p2-p2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Slow software makes a different bet: that a person who is allowed to concentrate will come back, and that the relationship is worth more than the session."
+								}
+							],
+							"_key": "p2-p3"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Designing for the second read" }],
+							"_key": "p2-h2b"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A page that rewards a second read is not necessarily quieter. It is more legible. The hierarchy holds, the language is specific, and nothing moves unless it has a reason to."
+								}
+							],
+							"_key": "p2-p4"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Speed is a feature. Calm is a property of the whole system, and it is much harder to add later."
+								}
+							],
+							"_key": "p2-quote"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "We are not arguing for sluggishness. We are arguing for a pace that leaves room for the reader to arrive. That is a design decision, and it belongs in the brief."
+								}
+							],
+							"_key": "p2-p5"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-theo", "roleLabel": "Tools" }],
+				"taxonomies": { "category": ["tools"], "tag": ["slow-software", "workflow"] }
+			},
+			{
+				"id": "post-second-read",
+				"slug": "designing-for-the-second-read",
+				"status": "published",
+				"data": {
+					"title": "Designing for the second read",
+					"excerpt": "The first read is for orientation. The second is where a piece of writing, or an interface, earns its place.",
+					"date": "2026-10-21T09:00:00.000Z",
+					"featured": false,
+					"related": ["$ref:post-manifesto", "$ref:post-slow"],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Most design decisions are made for the first read: the glance, the scroll, the five-second test. That is a reasonable place to start. It is a poor place to stop."
+								}
+							],
+							"_key": "p3-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Attention is the interface" }],
+							"_key": "p3-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A second read happens when the reader trusts the page enough to slow down. Trust is built by consistency: the same heading sizes, the same link treatment, the same promise about what a click will do."
+								}
+							],
+							"_key": "p3-p2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Inconsistency is expensive in a quiet way. Every small surprise asks the reader to re-orient, and re-orientation is the opposite of reading."
+								}
+							],
+							"_key": "p3-p3"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Three small tests" }],
+							"_key": "p3-h2b"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Read the page without clicking anything. Is the argument still clear?" }
+							],
+							"_key": "p3-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Cover the navigation. Does the content still tell you where you are?" }
+							],
+							"_key": "p3-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "number",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Read it on a narrow screen. Did anything important disappear?" }
+							],
+							"_key": "p3-li3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "None of these tests require a prototype. They require a page that is willing to be read, which is mostly a matter of restraint."
+								}
+							],
+							"_key": "p3-p4"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-mara", "roleLabel": "Editor" }],
+				"taxonomies": { "category": ["craft", "editing"], "tag": ["design-systems", "typography"] }
+			},
+			{
+				"id": "post-small-cms",
+				"slug": "a-small-cms-for-a-small-team",
+				"status": "published",
+				"data": {
+					"title": "A small CMS for a small team",
+					"excerpt": "Why we moved our editorial workflow into a content model designed for three people instead of three hundred.",
+					"date": "2026-11-03T09:00:00.000Z",
+					"featured": false,
+					"related": ["$ref:post-manifesto"],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Our editorial team is small. For a long time that meant a shared document, a folder of drafts, and a release checklist that lived in someone's head. It worked, mostly, until it did not."
+								}
+							],
+							"_key": "p4-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "The shape of the content" }],
+							"_key": "p4-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Fieldwork has four collections. Each one has a route, a set of fields, and a reason to exist that can be explained in one sentence."
+								}
+							],
+							"_key": "p4-p2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Journal: long-form notes, ordered by their own date field." }
+							],
+							"_key": "p4-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Handbook: internal practice, grouped by section and order." }
+							],
+							"_key": "p4-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Events: readings and workshops, with a real date range." }
+							],
+							"_key": "p4-li3"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Pages: standalone pages, built from reusable blocks." }
+							],
+							"_key": "p4-li4"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The route comes from the collection. That sounds obvious, but it means a new section is a folder and a schema, not a new application."
+								}
+							],
+							"_key": "p4-p3"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A content model is a promise about what the team will be able to change without asking a developer. Keep the promise small enough to keep."
+								}
+							],
+							"_key": "p4-quote"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-ines", "roleLabel": "Design" }],
+				"taxonomies": { "category": ["tools"], "tag": ["cms", "workflow"] }
+			},
+			{
+				"id": "post-printing",
+				"slug": "notes-on-printing-a-place",
+				"status": "published",
+				"data": {
+					"title": "Notes on printing a place",
+					"excerpt": "A letterpress project about a neighbourhood, and what a map leaves out when it decides what counts as a landmark.",
+					"date": "2026-11-08T09:00:00.000Z",
+					"featured": false,
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The project started with a walk and a camera, and ended with a small letterpress book that fits in a coat pocket. It is not a guide. It is an argument about what a neighbourhood is made of."
+								}
+							],
+							"_key": "p5-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "A map is an argument" }],
+							"_key": "p5-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Every map decides what to include. The official map includes the station, the church, and the supermarket. Our map includes the bench where the same three people eat lunch, the door that is always propped open, and the wall that has been repaired four times."
+								}
+							],
+							"_key": "p5-p2"
+						},
+						{
+							"_type": "block",
+							"style": "blockquote",
+							"children": [
+								{
+									"_type": "span",
+									"text": "A place is not a set of coordinates. It is a set of repeated gestures, and the surfaces that remember them."
+								}
+							],
+							"_key": "p5-quote"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The printing was deliberately modest: two colours, one typeface, a cover that could take being carried around. The constraints made the editing easier. When you cannot add another spread, you have to decide what the book is actually about."
+								}
+							],
+							"_key": "p5-p3"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-ines", "roleLabel": "Design" }],
+				"taxonomies": { "category": ["place"], "tag": ["field-notes", "typography"] }
+			},
+			{
+				"id": "post-tools",
+				"slug": "the-tools-we-keep",
+				"status": "published",
+				"data": {
+					"title": "The tools we keep",
+					"excerpt": "A short inventory of the software and objects that have survived more than one year in the studio.",
+					"date": "2026-11-11T09:00:00.000Z",
+					"featured": false,
+					"related": ["$ref:post-small-cms"],
+					"content": [
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "Every year or so we empty the studio's tool shelf and ask the same question: did this earn its place? Most things do not survive the question. The ones that do tend to be small, legible, and a little boring."
+								}
+							],
+							"_key": "p6-p1"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "Tools that keep" }],
+							"_key": "p6-h2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "Plain text files, because they outlive the applications that edit them." }
+							],
+							"_key": "p6-li1"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "A notebook with a sewn binding, because it opens flat." }
+							],
+							"_key": "p6-li2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"listItem": "bullet",
+							"level": 1,
+							"children": [
+								{ "_type": "span", "text": "A publishing workflow that can be explained in a paragraph." }
+							],
+							"_key": "p6-li3"
+						},
+						{
+							"_type": "block",
+							"style": "h2",
+							"children": [{ "_type": "span", "text": "What we retired" }],
+							"_key": "p6-h2b"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The project management tool with fourteen views. The analytics dashboard nobody opened. The custom static site generator that only one person could run. All of them promised leverage and delivered maintenance."
+								}
+							],
+							"_key": "p6-p2"
+						},
+						{
+							"_type": "block",
+							"style": "normal",
+							"children": [
+								{
+									"_type": "span",
+									"text": "The test is not whether a tool is good. It is whether the team can keep it good without making it the work."
+								}
+							],
+							"_key": "p6-p3"
+						}
+					]
+				},
+				"bylines": [{ "byline": "byline-theo", "roleLabel": "Tools" }],
+				"taxonomies": { "category": ["tools"], "tag": ["workflow"] }
 			}
 		]
 	}
