@@ -4,13 +4,21 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
+		"predev": "node scripts/ensure-storage.mjs",
 		"dev": "astro dev",
+		"prebuild": "node scripts/ensure-storage.mjs",
 		"build": "astro build",
 		"preview": "astro preview",
 		"start": "node ./dist/server/entry.mjs",
 		"typecheck": "astro check",
 		"types": "emdash types",
-		"seed:forms": "node scripts/seed-forms.mjs"
+		"seed:forms": "node scripts/seed-forms.mjs",
+		"backup": "node scripts/backup.mjs",
+		"content:export": "node scripts/export-content.mjs",
+		"preview:sync": "node scripts/sync-preview.mjs"
+	},
+	"engines": {
+		"node": ">=22.23.4"
 	},
 	"dependencies": {
 		"@astrojs/node": "^11.1.5",

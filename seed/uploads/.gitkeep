@@ -1,0 +1,2 @@
+# Media referenced by seed.json lives here.
+# Run `yarn content:export` to populate it, then commit the result.

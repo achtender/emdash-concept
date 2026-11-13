@@ -7,12 +7,30 @@
  * `plugin_id = "emdash-forms"`, `collection = "forms"`.
  *
  * Usage: node scripts/seed-forms.mjs
+ *
+ * Writes to `storage/data.db` by default. Override the path with
+ * `EMDASH_DB_PATH=/path/to/data.db` when running against a production release
+ * whose live database lives outside the release folder.
  */
 import { randomUUID } from "node:crypto";
+import { existsSync } from "node:fs";
+import { isAbsolute, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
+import { fileURLToPath } from "node:url";
 
 const PLUGIN_ID = "emdash-forms";
 const COLLECTION = "forms";
+
+const ROOT = fileURLToPath(new URL("..", import.meta.url));
+const DB_PATH = process.env.EMDASH_DB_PATH ?? "storage/data.db";
+const dbPath = isAbsolute(DB_PATH) ? DB_PATH : resolve(ROOT, DB_PATH);
+
+if (!existsSync(dbPath)) {
+	console.error(
+		`Database not found at ${dbPath}. Start the site once so migrations run, or set EMDASH_DB_PATH.`,
+	);
+	process.exit(1);
+}
 
 const now = new Date().toISOString();
 
@@ -134,7 +152,8 @@ const form = {
 	updatedAt: now,
 };
 
-const db = new DatabaseSync("data.db");
+const db = new DatabaseSync(dbPath);
+db.exec("PRAGMA busy_timeout = 5000");
 
 const existing = db
 	.prepare(

@@ -6,12 +6,15 @@ dist/
 .astro/
 .emdash/
 
-# EmDash runtime data
-data.db
-data.db-journal
-data.db-shm
-data.db-wal
-uploads/
+# EmDash runtime data (shared across releases in production)
+/storage/
+
+# Legacy local runtime paths (repo root only; seed/uploads/ is committed)
+/data.db
+/data.db-journal
+/data.db-shm
+/data.db-wal
+/uploads/
 
 # Environment
 .env
